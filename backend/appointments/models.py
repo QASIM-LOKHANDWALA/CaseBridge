@@ -1,4 +1,3 @@
-# appointments/models.py
 from django.db import models
 from users.models import User
 from lawyers.models import LawyerProfile
