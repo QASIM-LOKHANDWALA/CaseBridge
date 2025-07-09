@@ -1,9 +1,67 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from django.contrib.auth import authenticate
 from rest_framework import status
+from rest_framework import status, permissions
+from django.contrib.auth import authenticate
+from rest_framework.authtoken.models import Token
 from users.models import User
-from users.utils import generate_jwt
+from clients.models import GeneralUserProfile
+from lawyers.models import LawyerProfile
+
+class SignupView(APIView):
+    def post(self, request):
+        data = request.data
+        role = data.get("role")
+
+        email = data.get("email")
+        password = data.get("password")
+        full_name = data.get("full_name")
+
+        if not all([email, password, role, full_name]):
+            return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
+
+        if User.objects.filter(email=email).exists():
+            return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
+
+        user = User.objects.create_user(email=email, password=password, role=role)
+
+        if role == "general":
+            phone_number = data.get("phone_number")
+            address = data.get("address")
+            GeneralUserProfile.objects.create(
+                user=user,
+                full_name=full_name,
+                phone_number=phone_number,
+                address=address,
+            )
+        elif role == "lawyer":
+            bar_reg = data.get("bar_registration_number")
+            specialization = data.get("specialization")
+            experience_years = data.get("experience_years")
+            location = data.get("location")
+            bio = data.get("bio", "")
+
+            if LawyerProfile.objects.filter(bar_registration_number=bar_reg).exists():
+                return Response({"error": "Bar registration number already exists"}, status=status.HTTP_400_BAD_REQUEST)
+
+            LawyerProfile.objects.create(
+                user=user,
+                full_name=full_name,
+                bar_registration_number=bar_reg,
+                specialization=specialization,
+                experience_years=experience_years,
+                location=location,
+                bio=bio,
+            )
+        else:
+            return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
+
+        token, _ = Token.objects.get_or_create(user=user)
+        return Response({
+            "message": "Signup successful",
+            "token": token.key,
+            "role": user.role
+        }, status=status.HTTP_201_CREATED)
 
 class LoginView(APIView):
     def post(self, request):
@@ -11,19 +69,38 @@ class LoginView(APIView):
         password = request.data.get("password")
 
         if not email or not password:
-            return Response({"error": "Email and password are required."}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"error": "Email and password are required"}, status=status.HTTP_400_BAD_REQUEST)
 
-        try:
-            user = User.objects.get(email=email)
-            if not user.check_password(password):
-                raise ValueError()
-        except (User.DoesNotExist, ValueError):
-            return Response({"error": "Invalid credentials."}, status=status.HTTP_401_UNAUTHORIZED)
+        user = authenticate(request, email=email, password=password)
+        if user is None:
+            return Response({"error": "Invalid credentials"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        token = generate_jwt(user)
+        token, _ = Token.objects.get_or_create(user=user)
+
+        profile = None
+        if user.role == "general":
+            profile = GeneralUserProfile.objects.filter(user=user).first()
+        elif user.role == "lawyer":
+            profile = LawyerProfile.objects.filter(user=user).first()
 
         return Response({
-            "token": token,
+            "message": "Login successful",
+            "token": token.key,
             "role": user.role,
-            "email": user.email,
+            "profile": {
+                "full_name": profile.full_name if profile else "",
+                "email": user.email
+            }
         }, status=status.HTTP_200_OK)
+
+
+class LogoutView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        try:
+            print("Logging out user:", request.user.email)
+            request.user.auth_token.delete()
+            return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
+        except Token.DoesNotExist:
+            return Response({"error": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
