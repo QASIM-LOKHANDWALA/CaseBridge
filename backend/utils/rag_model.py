@@ -1,7 +1,7 @@
 # myapp/utils/rag_engine.py
 
 from langchain_community.embeddings import HuggingFaceEmbeddings
-from langchain_community.llms import Ollama 
+from langchain_community.llms import ollama
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
@@ -11,7 +11,7 @@ def get_legal_answer(user_query):
     embedding = HuggingFaceEmbeddings(model_name="sentence-transformers/all-MiniLM-L6-v2")
     vectorstore = FAISS.load_local("legal_vectorstore", embedding)
 
-    llm = Ollama(model="llama2")
+    llm = ollama.Ollama(model="llama2")
 
     prompt = ChatPromptTemplate.from_template("""
         You are a legal expert. Answer the question based on the provided context.
