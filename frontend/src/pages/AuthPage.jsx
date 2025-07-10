@@ -1,8 +1,27 @@
 import React, { useState } from "react";
-import axios from "axios";
+import {
+    Mail,
+    Lock,
+    User,
+    Phone,
+    MapPin,
+    Scale,
+    Award,
+    Calendar,
+    FileText,
+    Eye,
+    EyeOff,
+    ArrowRight,
+    ArrowLeft,
+    Shield,
+    CheckCircle,
+    ChevronRight,
+} from "lucide-react";
 
 const AuthPage = () => {
     const [isSignup, setIsSignup] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
+    const [currentStep, setCurrentStep] = useState(1);
     const [formData, setFormData] = useState({
         email: "",
         password: "",
@@ -10,12 +29,19 @@ const AuthPage = () => {
         full_name: "",
         phone_number: "",
         address: "",
+        bar_registration_number: "",
+        specialization: "",
+        experience_years: "",
+        location: "",
+        bio: "",
     });
 
     const [message, setMessage] = useState("");
+    const [loading, setLoading] = useState(false);
 
     const toggleMode = () => {
         setIsSignup(!isSignup);
+        setCurrentStep(1);
         setFormData({
             email: "",
             password: "",
@@ -23,6 +49,11 @@ const AuthPage = () => {
             full_name: "",
             phone_number: "",
             address: "",
+            bar_registration_number: "",
+            specialization: "",
+            experience_years: "",
+            location: "",
+            bio: "",
         });
         setMessage("");
     };
@@ -31,238 +62,686 @@ const AuthPage = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    const nextStep = () => {
+        setCurrentStep(currentStep + 1);
+    };
+
+    const prevStep = () => {
+        setCurrentStep(currentStep - 1);
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
     };
 
+    const inputClasses =
+        "w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200";
+    const labelClasses = "block text-gray-300 font-medium mb-2";
+
+    const isStep1Valid = () => {
+        return (
+            formData.full_name &&
+            formData.email &&
+            formData.password &&
+            formData.role
+        );
+    };
+
+    const isStep2Valid = () => {
+        if (formData.role === "general") {
+            return formData.phone_number && formData.address;
+        } else if (formData.role === "lawyer") {
+            return (
+                formData.bar_registration_number &&
+                formData.specialization &&
+                formData.experience_years &&
+                formData.location
+            );
+        }
+        return false;
+    };
+
+    const getStepTitle = () => {
+        if (!isSignup) return "Welcome Back";
+
+        switch (currentStep) {
+            case 1:
+                return "Create Your Account";
+            case 2:
+                return formData.role === "lawyer"
+                    ? "Professional Details"
+                    : "Personal Information";
+            case 3:
+                return "Almost Done!";
+            default:
+                return "Create Your Account";
+        }
+    };
+
+    const getStepDescription = () => {
+        if (!isSignup) return "Continue your legal journey";
+
+        switch (currentStep) {
+            case 1:
+                return "Let's start with the basics";
+            case 2:
+                return formData.role === "lawyer"
+                    ? "Tell us about your practice"
+                    : "Just a few more details";
+            case 3:
+                return "Complete your profile";
+            default:
+                return "Join thousands of legal professionals";
+        }
+    };
+
+    const totalSteps = isSignup ? (formData.role === "lawyer" ? 3 : 2) : 1;
+
     return (
-        <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4">
-            <form
-                onSubmit={handleSubmit}
-                className="bg-gray-800 p-8 rounded-xl border border-gray-700 max-w-lg w-full"
-            >
-                <h2 className="text-white text-3xl font-bold mb-6 text-center">
-                    {isSignup ? "Create Account" : "Login to Case Bridge"}
-                </h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {isSignup && (
-                        <>
-                            <div className="mb-4">
-                                <label className="text-gray-300 block mb-1">
-                                    Full Name
-                                </label>
-                                <input
-                                    type="text"
-                                    name="full_name"
-                                    value={formData.full_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                    required
-                                />
-                            </div>
-                        </>
-                    )}
+        <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8">
+            <div className="absolute inset-0 overflow-hidden">
+                <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl"></div>
+                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl"></div>
+            </div>
 
-                    <div className="mb-4">
-                        <label className="text-gray-300 block mb-1">
-                            Email
-                        </label>
-                        <input
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                            required
-                        />
+            <div className="relative w-full max-w-5xl">
+                <div className="grid lg:grid-cols-2 gap-8 items-center">
+                    <div className="hidden lg:block">
+                        <div className="text-center mb-8">
+                            <h1 className="text-4xl font-bold text-white mb-4">
+                                Welcome to{" "}
+                                <span className="text-blue-400">
+                                    Case Bridge
+                                </span>
+                            </h1>
+                            <p className="text-gray-300 text-lg">
+                                Your complete legal solution for modern India
+                            </p>
+                        </div>
+
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl p-8 border border-gray-700">
+                            <div className="space-y-6">
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                        <Shield className="w-6 h-6 text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-semibold">
+                                            Secure & Trusted
+                                        </h3>
+                                        <p className="text-gray-400 text-sm">
+                                            Bank-level security for your data
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                        <Scale className="w-6 h-6 text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-semibold">
+                                            Legal Expertise
+                                        </h3>
+                                        <p className="text-gray-400 text-sm">
+                                            Connect with verified lawyers
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center space-x-4">
+                                    <div className="w-12 h-12 bg-blue-600/20 rounded-lg flex items-center justify-center">
+                                        <CheckCircle className="w-6 h-6 text-blue-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-white font-semibold">
+                                            AI-Powered
+                                        </h3>
+                                        <p className="text-gray-400 text-sm">
+                                            Smart legal assistance 24/7
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="mt-8 pt-6 border-t border-gray-700">
+                                <div className="flex items-center justify-between text-sm">
+                                    <span className="text-gray-400">
+                                        Trusted by
+                                    </span>
+                                    <span className="text-white font-semibold">
+                                        50,000+ Users
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
-                    <div className="mb-4">
-                        <label className="text-gray-300 block mb-1">
-                            Password
-                        </label>
-                        <input
-                            type="password"
-                            name="password"
-                            value={formData.password}
-                            onChange={handleChange}
-                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                            required
-                        />
+                    <div className="w-full">
+                        <div className="bg-gray-800/50 backdrop-blur-sm rounded-2xl border border-gray-700 p-8 shadow-2xl">
+                            {isSignup && (
+                                <div className="mb-6">
+                                    <div className="flex items-center justify-between mb-2">
+                                        <span className="text-sm text-gray-400">
+                                            Step {currentStep} of {totalSteps}
+                                        </span>
+                                        <span className="text-sm text-gray-400">
+                                            {Math.round(
+                                                (currentStep / totalSteps) * 100
+                                            )}
+                                            % Complete
+                                        </span>
+                                    </div>
+                                    <div className="w-full bg-gray-700 rounded-full h-2">
+                                        <div
+                                            className="bg-gradient-to-r from-blue-600 to-blue-500 h-2 rounded-full transition-all duration-300"
+                                            style={{
+                                                width: `${
+                                                    (currentStep / totalSteps) *
+                                                    100
+                                                }%`,
+                                            }}
+                                        ></div>
+                                    </div>
+                                </div>
+                            )}
+
+                            <div className="text-center mb-8">
+                                <h2 className="text-3xl font-bold text-white mb-2">
+                                    {getStepTitle()}
+                                </h2>
+                                <p className="text-gray-400">
+                                    {getStepDescription()}
+                                </p>
+                            </div>
+
+                            <div className="space-y-6">
+                                {!isSignup && (
+                                    <>
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Email Address
+                                            </label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter your email"
+                                                    className={inputClasses}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Password
+                                            </label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type={
+                                                        showPassword
+                                                            ? "text"
+                                                            : "password"
+                                                    }
+                                                    name="password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter your password"
+                                                    className={inputClasses}
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowPassword(
+                                                            !showPassword
+                                                        )
+                                                    }
+                                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="w-5 h-5" />
+                                                    ) : (
+                                                        <Eye className="w-5 h-5" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </>
+                                )}
+
+                                {isSignup && currentStep === 1 && (
+                                    <>
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Full Name
+                                            </label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    name="full_name"
+                                                    value={formData.full_name}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter your full name"
+                                                    className={inputClasses}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Email Address
+                                            </label>
+                                            <div className="relative">
+                                                <Mail className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="email"
+                                                    name="email"
+                                                    value={formData.email}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter your email"
+                                                    className={inputClasses}
+                                                    required
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Password
+                                            </label>
+                                            <div className="relative">
+                                                <Lock className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type={
+                                                        showPassword
+                                                            ? "text"
+                                                            : "password"
+                                                    }
+                                                    name="password"
+                                                    value={formData.password}
+                                                    onChange={handleChange}
+                                                    placeholder="Enter your password"
+                                                    className={inputClasses}
+                                                    required
+                                                />
+                                                <button
+                                                    type="button"
+                                                    onClick={() =>
+                                                        setShowPassword(
+                                                            !showPassword
+                                                        )
+                                                    }
+                                                    className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                                                >
+                                                    {showPassword ? (
+                                                        <EyeOff className="w-5 h-5" />
+                                                    ) : (
+                                                        <Eye className="w-5 h-5" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            <label className={labelClasses}>
+                                                I am a
+                                            </label>
+                                            <select
+                                                name="role"
+                                                value={formData.role}
+                                                onChange={handleChange}
+                                                className="w-full pl-4 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                            >
+                                                <option value="general">
+                                                    General User
+                                                </option>
+                                                <option value="lawyer">
+                                                    Legal Professional
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </>
+                                )}
+
+                                {isSignup && currentStep === 2 && (
+                                    <>
+                                        {formData.role === "general" && (
+                                            <>
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Phone Number
+                                                    </label>
+                                                    <div className="relative">
+                                                        <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                        <input
+                                                            type="tel"
+                                                            name="phone_number"
+                                                            value={
+                                                                formData.phone_number
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            placeholder="Your phone number"
+                                                            className={
+                                                                inputClasses
+                                                            }
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Address
+                                                    </label>
+                                                    <div className="relative">
+                                                        <MapPin className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
+                                                        <textarea
+                                                            name="address"
+                                                            value={
+                                                                formData.address
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            placeholder="Your address"
+                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200 resize-none"
+                                                            rows="4"
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+
+                                        {formData.role === "lawyer" && (
+                                            <>
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Bar Registration Number
+                                                    </label>
+                                                    <div className="relative">
+                                                        <Scale className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                        <input
+                                                            type="text"
+                                                            name="bar_registration_number"
+                                                            value={
+                                                                formData.bar_registration_number
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            placeholder="Your bar registration number"
+                                                            className={
+                                                                inputClasses
+                                                            }
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Specialization
+                                                    </label>
+                                                    <div className="relative">
+                                                        <Award className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                        <select
+                                                            name="specialization"
+                                                            value={
+                                                                formData.specialization
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                                            required
+                                                        >
+                                                            <option value="">
+                                                                Select your
+                                                                specialization
+                                                            </option>
+                                                            <option value="Civil Law">
+                                                                Civil Law
+                                                            </option>
+                                                            <option value="Criminal Law">
+                                                                Criminal Law
+                                                            </option>
+                                                            <option value="Corporate Law">
+                                                                Corporate Law
+                                                            </option>
+                                                            <option value="Family Law">
+                                                                Family Law
+                                                            </option>
+                                                            <option value="Property Law">
+                                                                Property Law
+                                                            </option>
+                                                            <option value="Tax Law">
+                                                                Tax Law
+                                                            </option>
+                                                            <option value="Labor Law">
+                                                                Labor Law
+                                                            </option>
+                                                            <option value="Constitutional Law">
+                                                                Constitutional
+                                                                Law
+                                                            </option>
+                                                            <option value="Immigration Law">
+                                                                Immigration Law
+                                                            </option>
+                                                            <option value="Environmental Law">
+                                                                Environmental
+                                                                Law
+                                                            </option>
+                                                            <option value="Other">
+                                                                Other
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Years of Experience
+                                                    </label>
+                                                    <div className="relative">
+                                                        <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                        <select
+                                                            name="experience_years"
+                                                            value={
+                                                                formData.experience_years
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                                            required
+                                                        >
+                                                            <option value="">
+                                                                Select
+                                                                experience
+                                                            </option>
+                                                            <option value="0-2">
+                                                                0-2 years
+                                                            </option>
+                                                            <option value="3-5">
+                                                                3-5 years
+                                                            </option>
+                                                            <option value="6-10">
+                                                                6-10 years
+                                                            </option>
+                                                            <option value="11-15">
+                                                                11-15 years
+                                                            </option>
+                                                            <option value="16-20">
+                                                                16-20 years
+                                                            </option>
+                                                            <option value="20+">
+                                                                20+ years
+                                                            </option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+
+                                                <div>
+                                                    <label
+                                                        className={labelClasses}
+                                                    >
+                                                        Location
+                                                    </label>
+                                                    <div className="relative">
+                                                        <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                        <input
+                                                            type="text"
+                                                            name="location"
+                                                            value={
+                                                                formData.location
+                                                            }
+                                                            onChange={
+                                                                handleChange
+                                                            }
+                                                            placeholder="Your practice location"
+                                                            className={
+                                                                inputClasses
+                                                            }
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                )}
+
+                                {isSignup &&
+                                    currentStep === 3 &&
+                                    formData.role === "lawyer" && (
+                                        <div>
+                                            <label className={labelClasses}>
+                                                Professional Bio
+                                            </label>
+                                            <div className="relative">
+                                                <FileText className="absolute left-4 top-4 w-5 h-5 text-gray-400" />
+                                                <textarea
+                                                    name="bio"
+                                                    value={formData.bio}
+                                                    onChange={handleChange}
+                                                    placeholder="Tell us about your legal expertise and experience..."
+                                                    className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white placeholder-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200 resize-none"
+                                                    rows="6"
+                                                />
+                                            </div>
+                                            <p className="text-gray-400 text-sm mt-2">
+                                                This will be displayed on your
+                                                profile to help clients
+                                                understand your expertise.
+                                            </p>
+                                        </div>
+                                    )}
+
+                                <div className="flex gap-4">
+                                    {isSignup && currentStep > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={prevStep}
+                                            className="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center space-x-2"
+                                        >
+                                            <ArrowLeft className="w-5 h-5" />
+                                            <span>Back</span>
+                                        </button>
+                                    )}
+
+                                    {isSignup && currentStep < totalSteps ? (
+                                        <button
+                                            type="button"
+                                            onClick={nextStep}
+                                            disabled={
+                                                currentStep === 1
+                                                    ? !isStep1Valid()
+                                                    : !isStep2Valid()
+                                            }
+                                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                        >
+                                            <span>Continue</span>
+                                            <ArrowRight className="w-5 h-5" />
+                                        </button>
+                                    ) : (
+                                        <button
+                                            type="button"
+                                            onClick={handleSubmit}
+                                            disabled={loading}
+                                            className="flex-1 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 transform hover:scale-105 disabled:scale-100 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                                        >
+                                            {loading ? (
+                                                <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            ) : (
+                                                <>
+                                                    <span>
+                                                        {isSignup
+                                                            ? "Create Account"
+                                                            : "Sign In"}
+                                                    </span>
+                                                    <ArrowRight className="w-5 h-5" />
+                                                </>
+                                            )}
+                                        </button>
+                                    )}
+                                </div>
+
+                                {message && (
+                                    <div className="text-center p-4 bg-green-600/20 border border-green-600/50 rounded-lg text-green-400">
+                                        {message}
+                                    </div>
+                                )}
+
+                                <div className="text-center pt-6 border-t border-gray-700">
+                                    <p className="text-gray-400">
+                                        {isSignup
+                                            ? "Already have an account?"
+                                            : "Don't have an account?"}
+                                        <button
+                                            type="button"
+                                            onClick={toggleMode}
+                                            className="text-blue-400 hover:text-blue-300 font-semibold ml-2 transition-colors"
+                                        >
+                                            {isSignup ? "Sign In" : "Sign Up"}
+                                        </button>
+                                    </p>
+                                </div>
+
+                                {!isSignup && (
+                                    <div className="text-center">
+                                        <button
+                                            type="button"
+                                            className="text-blue-400 hover:text-blue-300 text-sm transition-colors"
+                                        >
+                                            Forgot your password?
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
                     </div>
-
-                    {isSignup && (
-                        <>
-                            <div className="mb-4">
-                                <label className="text-gray-300 block mb-1">
-                                    Full Name
-                                </label>
-                                <input
-                                    type="text"
-                                    name="full_name"
-                                    value={formData.full_name}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                    required
-                                />
-                            </div>
-
-                            <div className="mb-4">
-                                <label className="text-gray-300 block mb-1">
-                                    Role
-                                </label>
-                                <select
-                                    name="role"
-                                    value={formData.role}
-                                    onChange={handleChange}
-                                    className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                >
-                                    <option value="general">
-                                        General User
-                                    </option>
-                                    <option value="lawyer">Lawyer</option>
-                                </select>
-                            </div>
-
-                            {formData.role === "general" && (
-                                <>
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Phone Number
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="phone_number"
-                                            value={formData.phone_number}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Address
-                                        </label>
-                                        <textarea
-                                            name="address"
-                                            value={formData.address}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            rows="2"
-                                        />
-                                    </div>
-                                </>
-                            )}
-
-                            {formData.role === "lawyer" && (
-                                <>
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Bar Registration Number
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="bar_registration_number"
-                                            value={
-                                                formData.bar_registration_number ||
-                                                ""
-                                            }
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Specialization
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="specialization"
-                                            value={
-                                                formData.specialization || ""
-                                            }
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Experience (Years)
-                                        </label>
-                                        <input
-                                            type="number"
-                                            name="experience_years"
-                                            value={
-                                                formData.experience_years || ""
-                                            }
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Location
-                                        </label>
-                                        <input
-                                            type="text"
-                                            name="location"
-                                            value={formData.location || ""}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            required
-                                        />
-                                    </div>
-
-                                    <div className="mb-4">
-                                        <label className="text-gray-300 block mb-1">
-                                            Bio
-                                        </label>
-                                        <textarea
-                                            name="bio"
-                                            value={formData.bio || ""}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-2 rounded-lg bg-gray-700 text-white"
-                                            rows="2"
-                                        />
-                                    </div>
-                                </>
-                            )}
-                        </>
-                    )}
                 </div>
-
-                <button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full py-2 rounded-lg font-semibold transition-colors"
-                >
-                    {isSignup ? "Sign Up" : "Login"}
-                </button>
-
-                {message && (
-                    <p className="mt-4 text-center text-gray-300 text-sm">
-                        {message}
-                    </p>
-                )}
-
-                <div className="mt-6 text-center">
-                    <button
-                        type="button"
-                        onClick={toggleMode}
-                        className="text-blue-400 hover:underline text-sm"
-                    >
-                        {isSignup
-                            ? "Already have an account? Login"
-                            : "Don't have an account? Sign up"}
-                    </button>
-                </div>
-            </form>
+            </div>
         </div>
     );
 };
