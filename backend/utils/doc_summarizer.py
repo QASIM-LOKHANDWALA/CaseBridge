@@ -1,13 +1,13 @@
 from langchain.prompts import PromptTemplate
 from langchain.chains.summarize import load_summarize_chain
 from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain_community.llms import ollama
+from langchain_ollama import OllamaLLM
 from PyPDF2 import PdfReader
 
 def summarize_document(file):
     reader = PdfReader(file)
     
-    llm = ollama.Ollama(model="llama2")
+    llm = OllamaLLM(model="llama2")
     
     text = ""
     for i, page in enumerate(reader.pages):
@@ -18,7 +18,7 @@ def summarize_document(file):
     if not text:
         return "No Text Found"
     
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=10000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=2500, chunk_overlap=200)
     chunks = text_splitter.create_documents([text])
     
     main_prompt = """
@@ -39,6 +39,6 @@ def summarize_document(file):
         verbose=False
     )
     
-    summary = chain.run(chunks)
+    summary = chain.invoke({"input_documents": chunks})
     return summary if summary else "No Summary Generated"
     
