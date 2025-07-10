@@ -7,12 +7,14 @@ from rest_framework.authtoken.models import Token
 from users.models import User
 from clients.models import GeneralUserProfile
 from lawyers.models import LawyerProfile
+from users.serializers import UserSerializer
 
 class SignupView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
         data = request.data
         role = data.get("role")
-
         email = data.get("email")
         password = data.get("password")
         full_name = data.get("full_name")
@@ -57,13 +59,18 @@ class SignupView(APIView):
             return Response({"error": "Invalid role"}, status=status.HTTP_400_BAD_REQUEST)
 
         token, _ = Token.objects.get_or_create(user=user)
+        serialized_user = UserSerializer(user).data
+
         return Response({
             "message": "Signup successful",
             "token": token.key,
-            "role": user.role
+            "user": serialized_user
         }, status=status.HTTP_201_CREATED)
 
+
 class LoginView(APIView):
+    permission_classes = [permissions.AllowAny]
+
     def post(self, request):
         email = request.data.get("email")
         password = request.data.get("password")
@@ -77,20 +84,12 @@ class LoginView(APIView):
 
         token, _ = Token.objects.get_or_create(user=user)
 
-        profile = None
-        if user.role == "general":
-            profile = GeneralUserProfile.objects.filter(user=user).first()
-        elif user.role == "lawyer":
-            profile = LawyerProfile.objects.filter(user=user).first()
+        serialized_user = UserSerializer(user).data
 
         return Response({
             "message": "Login successful",
             "token": token.key,
-            "role": user.role,
-            "profile": {
-                "full_name": profile.full_name if profile else "",
-                "email": user.email
-            }
+            "user": serialized_user
         }, status=status.HTTP_200_OK)
 
 

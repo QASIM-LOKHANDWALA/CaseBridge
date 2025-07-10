@@ -1,6 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { act } from "react";
 
 const loginUser = createAsyncThunk(
     "auth/loginUser",
@@ -11,7 +10,7 @@ const loginUser = createAsyncThunk(
                 userData,
                 {
                     headers: {
-                        "Content-Type": "application/json,",
+                        "Content-Type": "application/json",
                     },
                 }
             );
@@ -42,14 +41,14 @@ const signUpUser = createAsyncThunk(
                 userData,
                 {
                     headers: {
-                        "Content-Type": "application/json,",
+                        "Content-Type": "application/json",
                     },
                 }
             );
             if (response.status === 201) {
-                const { user } = response.data;
+                const { user, token } = response.data;
                 localStorage.setItem("token", token);
-                return { user };
+                return { user, token };
             }
 
             return rejectWithValue("Sign up failed");
@@ -71,7 +70,7 @@ export const logoutUser = createAsyncThunk(
             const token = getState().auth.token;
 
             const response = await fetch("http://127.0.0.1:8000/user/logout", {
-                method: "GET",
+                method: "POST",
                 headers: {
                     Authorization: `Token ${token}`,
                 },
@@ -99,7 +98,7 @@ export const authSlice = createSlice({
         isAuthenticated: false,
         loading: false,
         error: null,
-        token: null,
+        token: localStorage.getItem("token") || null,
     },
     reducers: {},
 
@@ -128,12 +127,10 @@ export const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(signUpUser.fulfilled, (state, action) => {
-                console.log("Signup fulfilled:", action.payload);
                 state.loading = false;
+                state.isAuthenticated = true;
                 state.user = action.payload.user;
-                state.token = null;
-                state.isAuthenticated = false;
-                state.error = null;
+                state.token = action.payload.token;
             })
             .addCase(signUpUser.rejected, (state, action) => {
                 state.loading = false;
