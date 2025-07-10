@@ -63,7 +63,7 @@ const signUpUser = createAsyncThunk(
     }
 );
 
-export const logoutUser = createAsyncThunk(
+const logoutUser = createAsyncThunk(
     "auth/logoutUser",
     async (_, { rejectWithValue, getState }) => {
         try {
@@ -159,3 +159,5 @@ export const authSlice = createSlice({
 export const {} = authSlice.actions;
 
 export default authSlice.reducer;
+
+export { loginUser, signUpUser, logoutUser };

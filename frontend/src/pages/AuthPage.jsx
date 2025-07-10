@@ -17,6 +17,7 @@ import {
     CheckCircle,
     ChevronRight,
 } from "lucide-react";
+import useAuth from "../hooks/useAuth";
 
 const AuthPage = () => {
     const [isSignup, setIsSignup] = useState(false);
@@ -37,7 +38,6 @@ const AuthPage = () => {
     });
 
     const [message, setMessage] = useState("");
-    const [loading, setLoading] = useState(false);
 
     const toggleMode = () => {
         setIsSignup(!isSignup);
@@ -58,6 +58,8 @@ const AuthPage = () => {
         setMessage("");
     };
 
+    const { login, signup, loading, error, isAuthenticated, user } = useAuth();
+
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
@@ -72,6 +74,20 @@ const AuthPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        try {
+            if (isSignup) {
+                const data = await signup(formData);
+                setMessage(
+                    `Welcome ${data.user.full_name || data.user.email}!`
+                );
+            } else {
+                const data = await login(formData);
+                setMessage(`Logged in as ${data.user.email}`);
+            }
+        } catch (err) {
+            console.error("Auth error:", err);
+            setMessage("Authentication failed. Please try again.");
+        }
     };
 
     const inputClasses =
@@ -517,40 +533,24 @@ const AuthPage = () => {
                                                                 Select your
                                                                 specialization
                                                             </option>
-                                                            <option value="Civil Law">
+                                                            <option value="civil">
                                                                 Civil Law
                                                             </option>
-                                                            <option value="Criminal Law">
+                                                            <option value="criminal">
                                                                 Criminal Law
                                                             </option>
-                                                            <option value="Corporate Law">
+                                                            <option value="corporate">
                                                                 Corporate Law
                                                             </option>
-                                                            <option value="Family Law">
+                                                            <option value="family">
                                                                 Family Law
                                                             </option>
-                                                            <option value="Property Law">
+                                                            <option value="intellectual_property">
+                                                                Intellectual
                                                                 Property Law
                                                             </option>
-                                                            <option value="Tax Law">
-                                                                Tax Law
-                                                            </option>
-                                                            <option value="Labor Law">
-                                                                Labor Law
-                                                            </option>
-                                                            <option value="Constitutional Law">
-                                                                Constitutional
-                                                                Law
-                                                            </option>
-                                                            <option value="Immigration Law">
-                                                                Immigration Law
-                                                            </option>
-                                                            <option value="Environmental Law">
-                                                                Environmental
-                                                                Law
-                                                            </option>
-                                                            <option value="Other">
-                                                                Other
+                                                            <option value="general">
+                                                                General Law
                                                             </option>
                                                         </select>
                                                     </div>
@@ -572,7 +572,7 @@ const AuthPage = () => {
                                                             onChange={
                                                                 handleChange
                                                             }
-                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
                                                             required
                                                         >
                                                             <option value="">
