@@ -18,6 +18,7 @@ import {
     ChevronRight,
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
+import toast from "react-hot-toast";
 
 const AuthPage = () => {
     const [isSignup, setIsSignup] = useState(false);
@@ -36,6 +37,35 @@ const AuthPage = () => {
         location: "",
         bio: "",
     });
+
+    const indianCities = [
+        "Mumbai",
+        "Delhi",
+        "Bengaluru",
+        "Hyderabad",
+        "Ahmedabad",
+        "Chennai",
+        "Kolkata",
+        "Pune",
+        "Jaipur",
+        "Surat",
+        "Lucknow",
+        "Kanpur",
+        "Nagpur",
+        "Indore",
+        "Bhopal",
+        "Patna",
+        "Ludhiana",
+        "Agra",
+        "Nashik",
+        "Vadodara",
+        "Faridabad",
+        "Ghaziabad",
+        "Rajkot",
+        "Meerut",
+        "Amritsar",
+        "Varanasi",
+    ];
 
     const [message, setMessage] = useState("");
 
@@ -77,16 +107,14 @@ const AuthPage = () => {
         try {
             if (isSignup) {
                 const data = await signup(formData);
-                setMessage(
-                    `Welcome ${data.user.full_name || data.user.email}!`
-                );
+                toast.success(`Welcome, ${data.user.full_name}`);
             } else {
                 const data = await login(formData);
-                setMessage(`Logged in as ${data.user.email}`);
+                toast.success(`Logged in as ${data.user.email}`);
             }
         } catch (err) {
             console.error("Auth error:", err);
-            setMessage("Authentication failed. Please try again.");
+            toast.error("Authentication failed. Please try again.");
         }
     };
 
@@ -414,7 +442,7 @@ const AuthPage = () => {
                                                 name="role"
                                                 value={formData.role}
                                                 onChange={handleChange}
-                                                className="w-full pl-4 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                                className="w-full pl-4 pr-4 py-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
                                             >
                                                 <option value="general">
                                                     General User
@@ -526,7 +554,7 @@ const AuthPage = () => {
                                                             onChange={
                                                                 handleChange
                                                             }
-                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/50 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
+                                                            className="w-full pl-12 pr-4 py-3 bg-gray-800/80 border border-gray-700 rounded-lg text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all duration-200"
                                                             required
                                                         >
                                                             <option value="">
@@ -609,8 +637,7 @@ const AuthPage = () => {
                                                     </label>
                                                     <div className="relative">
                                                         <MapPin className="absolute left-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                                        <input
-                                                            type="text"
+                                                        <select
                                                             name="location"
                                                             value={
                                                                 formData.location
@@ -618,12 +645,32 @@ const AuthPage = () => {
                                                             onChange={
                                                                 handleChange
                                                             }
-                                                            placeholder="Your practice location"
-                                                            className={
-                                                                inputClasses
-                                                            }
+                                                            className={`${inputClasses} pl-10 appearance-none`}
                                                             required
-                                                        />
+                                                        >
+                                                            <option value="">
+                                                                Select your
+                                                                practice
+                                                                location
+                                                            </option>
+                                                            {indianCities.map(
+                                                                (
+                                                                    city,
+                                                                    index
+                                                                ) => (
+                                                                    <option
+                                                                        key={
+                                                                            index
+                                                                        }
+                                                                        value={
+                                                                            city
+                                                                        }
+                                                                    >
+                                                                        {city}
+                                                                    </option>
+                                                                )
+                                                            )}
+                                                        </select>
                                                     </div>
                                                 </div>
                                             </>
@@ -706,11 +753,11 @@ const AuthPage = () => {
                                     )}
                                 </div>
 
-                                {message && (
+                                {/* {message && (
                                     <div className="text-center p-4 bg-green-600/20 border border-green-600/50 rounded-lg text-green-400">
                                         {message}
                                     </div>
-                                )}
+                                )} */}
 
                                 <div className="text-center pt-6 border-t border-gray-700">
                                     <p className="text-gray-400">
