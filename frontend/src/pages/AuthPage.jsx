@@ -114,7 +114,7 @@ const AuthPage = () => {
             }
         } catch (err) {
             console.error("Auth error:", err);
-            toast.error("Authentication failed. Please try again.");
+            toast.error(`Authentication failed. ${err}`);
         }
     };
 
@@ -620,10 +620,7 @@ const AuthPage = () => {
                                                                 11-15 years
                                                             </option>
                                                             <option value="16-20">
-                                                                16-20 years
-                                                            </option>
-                                                            <option value="20+">
-                                                                20+ years
+                                                                16+ years
                                                             </option>
                                                         </select>
                                                     </div>

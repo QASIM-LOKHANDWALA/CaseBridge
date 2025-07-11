@@ -11,11 +11,19 @@ class LawyerProfile(models.Model):
         ('general', 'General Practice')    
     )
     
+    EXPERIENCE_CHOICES = (
+        ('0-2', '0-2 years'),
+        ('3-5', '3-5 years'),
+        ('6-10', '6-10 years'),
+        ('11-15', '11-15 years'),
+        ('16+', '16+ years'),
+    )
+    
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='lawyer_profile')
     full_name = models.CharField(max_length=255)
     bar_registration_number = models.CharField(max_length=50, unique=True)
     specialization = models.CharField(max_length=255, choices=SPECIALIZATION_CHOICES, default='general')
-    experience_years = models.IntegerField()
+    experience_years = models.CharField(max_length=100, choices=EXPERIENCE_CHOICES)
     location = models.CharField(max_length=255)
     bio = models.TextField(blank=True)
     is_verified = models.BooleanField(default=False)

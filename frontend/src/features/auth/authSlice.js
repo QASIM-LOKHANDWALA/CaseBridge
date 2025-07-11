@@ -20,11 +20,17 @@ const loginUser = createAsyncThunk(
                 return { user, token };
             }
 
-            return rejectWithValue("Login failed");
+            return rejectWithValue(
+                error.response.data.error ||
+                    error.response.data.message ||
+                    "Login failed"
+            );
         } catch (error) {
             if (error.response && error.response.data) {
                 return rejectWithValue(
-                    error.response.data.message || "Server error"
+                    error.response.data.error ||
+                        error.response.data.message ||
+                        "Server error"
                 );
             }
             return rejectWithValue(error.message || "Network error");
@@ -51,11 +57,17 @@ const signUpUser = createAsyncThunk(
                 return { user, token };
             }
 
-            return rejectWithValue("Sign up failed");
+            return rejectWithValue(
+                error.response.data.error ||
+                    error.response.data.message ||
+                    "Sign up failed"
+            );
         } catch (error) {
             if (error.response && error.response.data) {
                 return rejectWithValue(
-                    error.response.data.message || "Server error"
+                    error.response.data.error ||
+                        error.response.data.message ||
+                        "Server error"
                 );
             }
             return rejectWithValue(error.message || "Network error");
@@ -79,11 +91,17 @@ const logoutUser = createAsyncThunk(
                 localStorage.removeItem("token");
                 return { message: "Sign out successfully" };
             }
-            return rejectWithValue("Sign out failed");
+            return rejectWithValue(
+                error.response.data.error ||
+                    error.response.data.message ||
+                    "Sign out failed"
+            );
         } catch (error) {
             if (error.response && error.response.data) {
                 return rejectWithValue(
-                    error.response.data.message || "Server error"
+                    error.response.data.error ||
+                        error.response.data.message ||
+                        "Server error"
                 );
             }
             return rejectWithValue(error.message || "Network error");

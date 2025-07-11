@@ -14,20 +14,31 @@ class SignupView(APIView):
 
     def post(self, request):
         data = request.data
+        
+        print("Incoming signup data:", data)
+        
         role = data.get("role")
         email = data.get("email")
         password = data.get("password")
         full_name = data.get("full_name")
 
         if not all([email, password, role, full_name]):
+            print("Missing field(s):", email, password, role, full_name)
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=email).exists():
+            print("Email already exists:", email)
             return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
 
-        user = User.objects.create_user(email=email, password=password, role=role)
-
+        try:
+            user = User.objects.create_user(email=email, password=password, role=role)
+        except Exception as e:
+            print("Error creating user:", str(e))
+            return Response({"error": "User creation failed"}, status=status.HTTP_400_BAD_REQUEST)
+    
         if role == "general":
+            print("Creating GeneralUserProfile...")
+
             phone_number = data.get("phone_number")
             address = data.get("address")
             GeneralUserProfile.objects.create(
@@ -37,11 +48,15 @@ class SignupView(APIView):
                 address=address,
             )
         elif role == "lawyer":
+            print("Creating LawyerProfile...")
+
             bar_reg = data.get("bar_registration_number")
             specialization = data.get("specialization")
             experience_years = data.get("experience_years")
             location = data.get("location")
             bio = data.get("bio", "")
+            
+            print(bar_reg, specialization, experience_years, location, bio)
 
             if LawyerProfile.objects.filter(bar_registration_number=bar_reg).exists():
                 return Response({"error": "Bar registration number already exists"}, status=status.HTTP_400_BAD_REQUEST)
