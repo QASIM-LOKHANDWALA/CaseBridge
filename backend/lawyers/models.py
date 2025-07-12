@@ -29,6 +29,8 @@ class LawyerProfile(models.Model):
     is_verified = models.BooleanField(default=False)
     profile_picture = models.ImageField(upload_to='lawyer_pics/', blank=True, null=True)
     rating = models.FloatField(default=0.0)
+    cases_won = models.IntegerField(default=0)
+    clients_served = models.IntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

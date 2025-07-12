@@ -7,5 +7,5 @@ class LawyerProfileSerializer(serializers.ModelSerializer):
         fields = [
             'full_name', 'bar_registration_number', 'specialization',
             'experience_years', 'location', 'bio', 'is_verified',
-            'profile_picture', 'rating', 'created_at'
+            'profile_picture', 'rating', 'created_at', 'clients_served', 'cases_won'
         ]
