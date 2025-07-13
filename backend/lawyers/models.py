@@ -1,5 +1,7 @@
 from django.db import models
+from django.utils import timezone
 from users.models import User
+from clients.models import GeneralUserProfile
 
 class LawyerProfile(models.Model):
     SPECIALIZATION_CHOICES = (
@@ -35,3 +37,35 @@ class LawyerProfile(models.Model):
 
     def __str__(self):
         return self.full_name
+
+class LegalCase(models.Model):
+    STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('closed', 'Closed'),
+        ('pending', 'Pending'),
+        ('on_hold', 'On Hold'),
+    )
+
+    PRIORITY_CHOICES = (
+        ('low', 'Low'),
+        ('medium', 'Medium'),
+        ('high', 'High'),
+        ('urgent', 'Urgent'),
+    )
+
+    title = models.CharField(max_length=255)
+    client = models.ForeignKey(GeneralUserProfile, on_delete=models.CASCADE, related_name='legal_cases')
+    lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='legal_cases')
+    court = models.CharField(max_length=255)
+    case_number = models.CharField(max_length=50, unique=True)
+    next_hearing = models.DateField()
+    
+    status = models.CharField(max_length=50, choices=STATUS_CHOICES, default='active')
+    priority = models.CharField(max_length=50, choices=PRIORITY_CHOICES, default='medium')
+    last_update = models.DateTimeField(default=timezone.now)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.title} ({self.case_number})"
