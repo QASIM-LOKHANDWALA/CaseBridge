@@ -1,6 +1,7 @@
 from django.urls import path
-from .views import dummy_payment_view
+from . import views
 
 urlpatterns = [
-    path('hire/<int:hire_id>/pay/', dummy_payment_view, name='dummy_payment'),
+    path('lawyer/<int:lawyer_id>/', views.HireLawyerView.as_view(), name='hire-lawyer'),
+    path('<int:hire_id>/respond/', views.RespondToHireRequestView.as_view(), name='respond-hire'),
 ]

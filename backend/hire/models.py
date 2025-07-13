@@ -1,6 +1,7 @@
 from django.db import models
 from users.models import User
-from .models import LawyerProfile, GeneralUserProfile
+from lawyers.models import LawyerProfile
+from clients.models import GeneralUserProfile
 
 class Hire(models.Model):
     STATUS_CHOICES = (
@@ -19,14 +20,7 @@ class Hire(models.Model):
     is_paid = models.BooleanField(default=False)
     hired_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    transaction = models.OneToOneField(
-        'Transaction',
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='hire'
-    )
-
+    
     def __str__(self):
         return f'{self.client.full_name} -> {self.lawyer.full_name} | {self.status}'
 
