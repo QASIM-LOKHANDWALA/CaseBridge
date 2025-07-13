@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
     User,
     Calendar,
@@ -12,12 +12,31 @@ import {
 } from "lucide-react";
 import Profile from "../components/lawyerHome/Profile";
 import useAuth from "../hooks/useAuth";
+import axios from "axios";
+import Clients from "../components/lawyerHome/Clients";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
     const [showNotifications, setShowNotifications] = useState(false);
+    const [clients, setClients] = useState([]);
+    const { user, token } = useAuth();
 
-    const { user } = useAuth();
+    useEffect(() => {
+        const fetchClients = async () => {
+            const lawyerId = user.lawyer_profile.id;
+            const response = await axios.get(
+                `http://localhost:8000/api/lawyers/clients/${lawyerId}/`,
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            console.log(response.data);
+            setClients(response.data);
+        };
+        fetchClients();
+    }, []);
 
     const renderContent = () => {
         switch (activeTab) {
@@ -28,7 +47,7 @@ const LawyerHome = () => {
             case "cases":
                 return null;
             case "clients":
-                return null;
+                return <Clients clients={clients} />;
             case "messages":
                 return null;
             default:
