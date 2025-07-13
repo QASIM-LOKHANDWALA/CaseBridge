@@ -11,8 +11,11 @@ import {
     Calendar,
     Users,
 } from "lucide-react";
+import useAuth from "../../hooks/useAuth";
 
-const Profile = ({ lawyer }) => {
+const Profile = () => {
+    const { user } = useAuth();
+
     const getExperienceText = (experienceYears) => {
         const experienceMap = {
             "0-2": "0-2 years",
@@ -53,10 +56,12 @@ const Profile = ({ lawyer }) => {
                     <div className="space-y-4">
                         <div className="flex items-center space-x-4">
                             <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
-                                {lawyer.profile_picture ? (
+                                {user.lawyer_profile.profile_picture ? (
                                     <img
-                                        src={lawyer.profile_picture}
-                                        alt={lawyer.full_name}
+                                        src={
+                                            user.lawyer_profile.profile_picture
+                                        }
+                                        alt={user.lawyer_profile.full_name}
                                         className="w-full h-full object-cover"
                                     />
                                 ) : (
@@ -65,24 +70,24 @@ const Profile = ({ lawyer }) => {
                             </div>
                             <div>
                                 <h4 className="text-xl font-semibold text-white">
-                                    {lawyer.full_name}
+                                    {user.lawyer_profile.full_name}
                                 </h4>
                                 <div className="flex items-center space-x-2">
                                     <Shield
                                         className={`w-4 h-4 ${
-                                            lawyer.is_verified
+                                            user.lawyer_profile.is_verified
                                                 ? "text-green-400"
                                                 : "text-gray-400"
                                         }`}
                                     />
                                     <span
                                         className={`text-sm ${
-                                            lawyer.is_verified
+                                            user.lawyer_profile.is_verified
                                                 ? "text-green-400"
                                                 : "text-gray-400"
                                         }`}
                                     >
-                                        {lawyer.is_verified
+                                        {user.lawyer_profile.is_verified
                                             ? "Verified by Bar Council"
                                             : "Verification Pending"}
                                     </span>
@@ -94,14 +99,13 @@ const Profile = ({ lawyer }) => {
                             <div className="flex items-center space-x-3">
                                 <Mail className="w-4 h-4 text-gray-400" />
                                 <span className="text-gray-300">
-                                    {lawyer.user?.email ||
-                                        "Email not available"}
+                                    {user?.email || "Email not available"}
                                 </span>
                             </div>
                             <div className="flex items-center space-x-3">
                                 <MapPin className="w-4 h-4 text-gray-400" />
                                 <span className="text-gray-300">
-                                    {lawyer.location}
+                                    {user.lawyer_profile.location}
                                 </span>
                             </div>
                             <div className="flex items-center space-x-3">
@@ -109,7 +113,7 @@ const Profile = ({ lawyer }) => {
                                 <span className="text-gray-300">
                                     Member since{" "}
                                     {new Date(
-                                        lawyer.created_at
+                                        user.lawyer_profile.created_at
                                     ).toLocaleDateString("en-US", {
                                         year: "numeric",
                                         month: "long",
@@ -130,7 +134,10 @@ const Profile = ({ lawyer }) => {
                                         Bar Registration:
                                     </span>
                                     <span className="text-gray-300">
-                                        {lawyer.bar_registration_number}
+                                        {
+                                            user.lawyer_profile
+                                                .bar_registration_number
+                                        }
                                     </span>
                                 </div>
                                 <div className="flex justify-between">
@@ -139,7 +146,7 @@ const Profile = ({ lawyer }) => {
                                     </span>
                                     <span className="text-gray-300">
                                         {getSpecializationText(
-                                            lawyer.specialization
+                                            user.lawyer_profile.specialization
                                         )}
                                     </span>
                                 </div>
@@ -149,7 +156,7 @@ const Profile = ({ lawyer }) => {
                                     </span>
                                     <span className="text-gray-300">
                                         {getExperienceText(
-                                            lawyer.experience_years
+                                            user.lawyer_profile.experience_years
                                         )}
                                     </span>
                                 </div>
@@ -158,19 +165,19 @@ const Profile = ({ lawyer }) => {
                                         User Role:
                                     </span>
                                     <span className="text-blue-400 capitalize">
-                                        {lawyer.user?.role || "Lawyer"}
+                                        {user?.role || "Lawyer"}
                                     </span>
                                 </div>
                             </div>
                         </div>
 
-                        {lawyer.bio && (
+                        {user.lawyer_profile.bio && (
                             <div>
                                 <h5 className="font-medium text-white mb-2">
                                     About
                                 </h5>
                                 <p className="text-sm text-gray-300 leading-relaxed">
-                                    {lawyer.bio}
+                                    {user.lawyer_profile.bio}
                                 </p>
                             </div>
                         )}
@@ -181,14 +188,14 @@ const Profile = ({ lawyer }) => {
             <div className="grid md:grid-cols-3 gap-6">
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
                     <div className="text-2xl font-bold text-white mb-2">
-                        {lawyer.rating.toFixed(1)}
+                        {user.lawyer_profile.rating.toFixed(1)}
                     </div>
                     <div className="flex items-center justify-center space-x-1 mb-1">
                         {[...Array(5)].map((_, i) => (
                             <Star
                                 key={i}
                                 className={`w-4 h-4 ${
-                                    i < Math.floor(lawyer.rating)
+                                    i < Math.floor(user.lawyer_profile.rating)
                                         ? "text-yellow-400 fill-current"
                                         : "text-gray-400"
                                 }`}
@@ -200,7 +207,7 @@ const Profile = ({ lawyer }) => {
 
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
                     <div className="text-2xl font-bold text-white mb-2">
-                        {lawyer.cases_won}
+                        {user.lawyer_profile.cases_won}
                     </div>
                     <div className="flex items-center justify-center mb-1">
                         <Award className="w-4 h-4 text-green-400" />
@@ -210,7 +217,7 @@ const Profile = ({ lawyer }) => {
 
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
                     <div className="text-2xl font-bold text-white mb-2">
-                        {lawyer.clients_served}
+                        {user.lawyer_profile.clients_served}
                     </div>
                     <div className="flex items-center justify-center mb-1">
                         <Users className="w-4 h-4 text-blue-400" />

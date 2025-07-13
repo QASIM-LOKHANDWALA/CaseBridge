@@ -11,38 +11,18 @@ import {
     Home,
 } from "lucide-react";
 import Profile from "../components/lawyerHome/Profile";
+import useAuth from "../hooks/useAuth";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
     const [showNotifications, setShowNotifications] = useState(false);
 
-    const lawyer = {
-        id: 1,
-        full_name: "Adv. Priya Sharma",
-        bar_registration_number: "MH/2015/045231",
-        specialization: "criminal",
-        experience_years: "6-10",
-        location: "Mumbai, Maharashtra",
-        bio: "Experienced criminal defense attorney with a proven track record of successful cases. Specializing in white-collar crimes, cybercrime, and complex litigation matters. Committed to providing comprehensive legal representation with a client-focused approach.",
-        is_verified: true,
-        profile_picture: null,
-        rating: 4.7,
-        cases_won: 89,
-        clients_served: 156,
-        created_at: "2020-03-15T10:30:00Z",
-        user: {
-            id: 1,
-            email: "priya.sharma@lawfirm.com",
-            role: "lawyer",
-            is_active: true,
-            date_joined: "2020-03-15T10:30:00Z",
-        },
-    };
+    const { user } = useAuth();
 
     const renderContent = () => {
         switch (activeTab) {
             case "profile":
-                return <Profile lawyer={lawyer} />;
+                return <Profile />;
             case "dashboard":
                 return null;
             case "cases":
@@ -161,7 +141,7 @@ const LawyerHome = () => {
                             </div>
                             <div className="hidden md:block">
                                 <p className="text-sm font-medium text-white">
-                                    {lawyer.full_name}
+                                    {user.lawyer_profile.full_name}
                                 </p>
                                 <p className="text-xs text-gray-400">
                                     Advocate
