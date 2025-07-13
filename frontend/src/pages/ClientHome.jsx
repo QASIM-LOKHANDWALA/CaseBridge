@@ -14,7 +14,7 @@ import {
     BookOpen,
     Clock,
 } from "lucide-react";
-import LawyerCard from "../components/LawyerCard";
+import LawyerCard from "../components/clientHome/LawyerCard";
 
 const ClientHome = () => {
     const [searchTerm, setSearchTerm] = useState("");
