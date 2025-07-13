@@ -1,5 +1,5 @@
 from django.db import models
-from users.models import User
+from clients.models import GeneralUserProfile
 from lawyers.models import LawyerProfile
 
 class CaseAppointment(models.Model):
@@ -10,7 +10,7 @@ class CaseAppointment(models.Model):
         ('cancelled', 'Cancelled'),
     )
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='appointments')
+    user = models.ForeignKey(GeneralUserProfile, on_delete=models.CASCADE, related_name='appointments')
     lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='appointments')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)

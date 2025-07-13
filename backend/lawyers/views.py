@@ -6,8 +6,9 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from .models import LawyerProfile
 from users.models import User
-from users.models import User
+from appointments.models import CaseAppointment
 from users.serializers import UserSerializer
+from appointments.serializers import CaseAppointmentSerializer
 from rest_framework import status
 
 class LawyerListView(ListAPIView):
@@ -45,3 +46,18 @@ def get_lawyer_clients(request, lawyer_id):
         client_data = [{'client_id': hire.client.id, 'client_name': hire.client.full_name} for hire in clients]
         return Response(client_data, status=status.HTTP_200_OK)
     
+class LawyerAppointmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            lawyer_profile = user.lawyer_profile
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "You are not authorized to view appointments."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointments = CaseAppointment.objects.filter(lawyer=lawyer_profile).order_by('-appointment_date')
+
+        serializer = CaseAppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
