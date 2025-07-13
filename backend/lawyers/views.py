@@ -4,7 +4,7 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import LawyerProfile
+from .models import LawyerProfile, LegalCase
 from users.models import User
 from appointments.models import CaseAppointment
 from users.serializers import UserSerializer
@@ -37,14 +37,32 @@ class LawyerDetailView(APIView):
     
 @api_view(['GET'])
 def get_lawyer_clients(request, lawyer_id):
-    if request.method == 'GET':
-        try:
-            lawyer = LawyerProfile.objects.get(id=lawyer_id)
-        except LawyerProfile.DoesNotExist:
-            return Response({'error': 'Lawyer not found'}, status=status.HTTP_404_NOT_FOUND)
-        clients = lawyer.hires.filter(status='accepted')
-        client_data = [{'client_id': hire.client.id, 'client_name': hire.client.full_name} for hire in clients]
-        return Response(client_data, status=status.HTTP_200_OK)
+    try:
+        lawyer = LawyerProfile.objects.get(id=lawyer_id)
+    except LawyerProfile.DoesNotExist:
+        return Response({'error': 'Lawyer not found'}, status=status.HTTP_404_NOT_FOUND)
+
+    hires = lawyer.hires.filter(status='accepted')
+
+    client_data = []
+    for hire in hires:
+        client = hire.client
+        user = client.user
+
+        total_cases = LegalCase.objects.filter(client=client, lawyer=lawyer).count()
+        active_cases = LegalCase.objects.filter(client=client, lawyer=lawyer, status='active').count()
+
+        client_data.append({
+            "id": client.id,
+            "name": client.full_name,
+            "phone": client.phone_number,
+            "email": user.email,
+            "activeCases": active_cases,
+            "totalCases": total_cases,
+            "status": "Active" if active_cases > 0 else "Inactive"
+        })
+
+    return Response(client_data, status=status.HTTP_200_OK)
     
 class LawyerAppointmentsView(APIView):
     permission_classes = [IsAuthenticated]
