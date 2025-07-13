@@ -1,0 +1,50 @@
+from django.db import models
+from users.models import User
+from .models import LawyerProfile, GeneralUserProfile
+
+class Hire(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('accepted', 'Accepted'),
+        ('rejected', 'Rejected'),
+        ('completed', 'Completed'),
+        ('cancelled', 'Cancelled'),
+    )
+
+    client = models.ForeignKey(GeneralUserProfile, on_delete=models.CASCADE, related_name='hires')
+    lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='hires')
+    case_description = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    is_paid = models.BooleanField(default=False)
+    hired_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    transaction = models.OneToOneField(
+        'Transaction',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='hire'
+    )
+
+    def __str__(self):
+        return f'{self.client.full_name} -> {self.lawyer.full_name} | {self.status}'
+
+
+class Transaction(models.Model):
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('completed', 'Completed'),
+        ('refunded', 'Refunded'),
+        ('failed', 'Failed')
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    hire = models.ForeignKey(Hire, on_delete=models.CASCADE, related_name='transactions')
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    payment_method = models.CharField(max_length=100)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f'{self.user.email} - {self.amount} - {self.status}'

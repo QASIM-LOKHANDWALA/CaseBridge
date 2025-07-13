@@ -33,7 +33,8 @@ INSTALLED_APPS = [
     'lawyers',
     'clients',
     'appointments',
-    'chat'
+    'chat',
+    'hire'
 ]
 
 AUTH_USER_MODEL = 'users.User'
