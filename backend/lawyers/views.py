@@ -7,10 +7,11 @@ from rest_framework.decorators import api_view
 from .models import LawyerProfile, LegalCase
 from users.models import User
 from appointments.models import CaseAppointment
+from clients.models import GeneralUserProfile
 from users.serializers import UserSerializer
 from appointments.serializers import CaseAppointmentSerializer
 from rest_framework import status
-
+from django.utils import timezone
 class LawyerListView(ListAPIView):
     queryset = User.objects.filter(role='lawyer')
     serializer_class = UserSerializer
@@ -79,3 +80,83 @@ class LawyerAppointmentsView(APIView):
 
         serializer = CaseAppointmentSerializer(appointments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class LawyerCasesView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+
+        try:
+            lawyer_profile = user.lawyer_profile
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "You are not authorized to view cases."}, status=status.HTTP_403_FORBIDDEN)
+
+        cases = LegalCase.objects.filter(lawyer=lawyer_profile).order_by('-created_at')
+
+        return Response({
+            "cases": [
+                {
+                    "id": case.id,
+                    "title": case.title,
+                    "client": case.client.full_name,
+                    "court": case.court,
+                    "case_number": case.case_number,
+                    "next_hearing": case.next_hearing,
+                    "status": case.status,
+                    "priority": case.priority,
+                    "created_at": case.created_at
+                } for case in cases
+            ]
+        }, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        user = request.user
+
+        try:
+            lawyer_profile = user.lawyer_profile
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "You are not authorized to create cases."}, status=status.HTTP_403_FORBIDDEN)
+
+        data = request.data
+        required_fields = ['title', 'client_id', 'court', 'case_number', 'next_hearing']
+
+        for field in required_fields:
+            if field not in data:
+                return Response({"error": f"{field} is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            client = GeneralUserProfile.objects.get(id=data['client_id'])
+        except GeneralUserProfile.DoesNotExist:
+            return Response({"error": "Client not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            legal_case = LegalCase.objects.create(
+                title=data['title'],
+                client=client,
+                lawyer=lawyer_profile,
+                court=data['court'],
+                case_number=data['case_number'],
+                next_hearing=data['next_hearing'],
+                status=data.get('status', 'active'),
+                priority=data.get('priority', 'medium'),
+                last_update=timezone.now()
+            )
+
+            return Response({
+                "message": "Legal case created successfully.",
+                "case": {
+                    "id": legal_case.id,
+                    "title": legal_case.title,
+                    "client": legal_case.client.full_name,
+                    "court": legal_case.court,
+                    "case_number": legal_case.case_number,
+                    "next_hearing": legal_case.next_hearing,
+                    "status": legal_case.status,
+                    "priority": legal_case.priority,
+                    "created_at": legal_case.created_at
+                }
+            }, status=status.HTTP_201_CREATED)
+
+        except Exception as e:
+            return Response({"error": "Failed to create legal case.", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

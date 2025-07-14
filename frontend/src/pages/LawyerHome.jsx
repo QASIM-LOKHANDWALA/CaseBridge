@@ -20,6 +20,7 @@ const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
     const [showNotifications, setShowNotifications] = useState(false);
     const [clients, setClients] = useState([]);
+    const [cases, setCases] = useState([]);
     const { user, token } = useAuth();
 
     useEffect(() => {
@@ -36,41 +37,23 @@ const LawyerHome = () => {
             console.log(response.data);
             setClients(response.data);
         };
-        fetchClients();
-    }, []);
 
-    const cases = [
-        {
-            id: 1,
-            title: "Property Dispute - Sharma vs Patel",
-            client: "Mr. Arvind Sharma",
-            court: "Mumbai High Court",
-            caseNumber: "CS/2024/1234",
-            nextHearing: "2024-12-20",
-            status: "Active",
-            priority: "High",
-        },
-        {
-            id: 2,
-            title: "Divorce Proceedings - Kumar vs Kumar",
-            client: "Mrs. Priya Kumar",
-            court: "Family Court, Mumbai",
-            caseNumber: "FC/2024/5678",
-            nextHearing: "2024-12-18",
-            status: "In Progress",
-            priority: "Medium",
-        },
-        {
-            id: 3,
-            title: "Corporate Contract Dispute",
-            client: "TechCorp Ltd.",
-            court: "Commercial Court",
-            caseNumber: "CC/2024/9012",
-            nextHearing: "2024-12-22",
-            status: "Active",
-            priority: "High",
-        },
-    ];
+        const fetchCases = async () => {
+            const lawyerId = user.lawyer_profile.id;
+            const response = await axios.get(
+                `http://localhost:8000/api/lawyers/cases`,
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            console.log(response.data);
+            setCases(response.data.cases);
+        };
+        fetchClients();
+        fetchCases();
+    }, []);
 
     const renderContent = () => {
         switch (activeTab) {

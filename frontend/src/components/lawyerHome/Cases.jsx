@@ -26,7 +26,7 @@ const Cases = ({ cases }) => {
                                     {case_.title}
                                 </h4>
                                 <p className="text-sm text-gray-400">
-                                    Case No: {case_.caseNumber}
+                                    Case No: {case_.case_number}
                                 </p>
                             </div>
                             <div className="flex items-center space-x-2">
@@ -77,7 +77,7 @@ const Cases = ({ cases }) => {
                                     Next Hearing
                                 </p>
                                 <p className="text-sm text-blue-400">
-                                    {case_.nextHearing}
+                                    {case_.next_hearing}
                                 </p>
                             </div>
                         </div>
