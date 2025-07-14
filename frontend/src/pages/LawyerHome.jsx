@@ -14,6 +14,7 @@ import Profile from "../components/lawyerHome/Profile";
 import useAuth from "../hooks/useAuth";
 import axios from "axios";
 import Clients from "../components/lawyerHome/Clients";
+import Cases from "../components/lawyerHome/Cases";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -38,6 +39,39 @@ const LawyerHome = () => {
         fetchClients();
     }, []);
 
+    const cases = [
+        {
+            id: 1,
+            title: "Property Dispute - Sharma vs Patel",
+            client: "Mr. Arvind Sharma",
+            court: "Mumbai High Court",
+            caseNumber: "CS/2024/1234",
+            nextHearing: "2024-12-20",
+            status: "Active",
+            priority: "High",
+        },
+        {
+            id: 2,
+            title: "Divorce Proceedings - Kumar vs Kumar",
+            client: "Mrs. Priya Kumar",
+            court: "Family Court, Mumbai",
+            caseNumber: "FC/2024/5678",
+            nextHearing: "2024-12-18",
+            status: "In Progress",
+            priority: "Medium",
+        },
+        {
+            id: 3,
+            title: "Corporate Contract Dispute",
+            client: "TechCorp Ltd.",
+            court: "Commercial Court",
+            caseNumber: "CC/2024/9012",
+            nextHearing: "2024-12-22",
+            status: "Active",
+            priority: "High",
+        },
+    ];
+
     const renderContent = () => {
         switch (activeTab) {
             case "profile":
@@ -45,7 +79,7 @@ const LawyerHome = () => {
             case "dashboard":
                 return null;
             case "cases":
-                return null;
+                return <Cases cases={cases} />;
             case "clients":
                 return <Clients clients={clients} />;
             case "messages":

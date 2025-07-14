@@ -58,9 +58,6 @@ const Clients = ({ clients }) => {
                                     <h4 className="font-semibold text-white">
                                         {client.name}
                                     </h4>
-                                    <p className="text-sm text-gray-400">
-                                        Last contact: {client.lastContact}
-                                    </p>
                                 </div>
                             </div>
                             <div
