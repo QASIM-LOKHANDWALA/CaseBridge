@@ -43,7 +43,7 @@ def get_lawyer_clients(request, lawyer_id):
     except LawyerProfile.DoesNotExist:
         return Response({'error': 'Lawyer not found'}, status=status.HTTP_404_NOT_FOUND)
 
-    hires = lawyer.hires.filter(status='accepted')
+    hires = lawyer.hires.filter()
 
     client_data = []
     for hire in hires:
@@ -60,6 +60,8 @@ def get_lawyer_clients(request, lawyer_id):
             "email": user.email,
             "activeCases": active_cases,
             "totalCases": total_cases,
+            "hire_status": hire.status,
+            "hire_id": hire.id,
             "status": "Active" if active_cases > 0 else "Inactive"
         })
 

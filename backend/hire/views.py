@@ -44,22 +44,22 @@ class RespondToHireRequestView(APIView):
         user = request.user
 
         if user.role != 'lawyer':
-            return Response({'error': 'Only lawyers can respond to hire requests.'}, status=403)
+            return Response({'error': 'Only lawyers can respond to hire requests.'}, status=status.HTTP_403_FORBIDDEN)
 
         try:
             hire = Hire.objects.get(id=hire_id)
         except Hire.DoesNotExist:
-            return Response({'error': 'Hire request not found.'}, status=404)
+            return Response({'error': 'Hire request not found.'}, status=status.HTTP_404_NOT_FOUND)
 
         if hire.lawyer.user != user:
-            return Response({'error': 'You are not authorized to respond to this hire request.'}, status=403)
+            return Response({'error': 'You are not authorized to respond to this hire request.'}, status=status.HTTP_403_FORBIDDEN)
 
         new_status = request.data.get('status')
 
         if new_status not in ['accepted', 'rejected']:
-            return Response({'error': 'Invalid status. Must be "accepted" or "rejected".'}, status=400)
+            return Response({'error': 'Invalid status. Must be "accepted" or "rejected".'}, status=status.HTTP_400_BAD_REQUEST)
 
         hire.status = new_status
         hire.save()
 
-        return Response({'message': f'Hire request {new_status} successfully.'}, status=200)
+        return Response({'message': f'Hire request {new_status} successfully.'}, status=status.HTTP_200_OK)

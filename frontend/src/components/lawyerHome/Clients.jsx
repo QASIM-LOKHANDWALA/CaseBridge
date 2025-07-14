@@ -1,32 +1,29 @@
 import React from "react";
 import {
     User,
-    Calendar,
-    Users,
     MessageCircle,
-    Shield,
     Search,
-    Bell,
-    Settings,
-    LogOut,
-    Clock,
-    Plus,
     Edit,
     Eye,
     Phone,
     Mail,
-    MapPin,
-    Award,
-    Briefcase,
-    Filter,
-    Video,
-    Star,
-    TrendingUp,
-    IndianRupee,
-    Home,
+    Check,
 } from "lucide-react";
 
-const Clients = ({ clients }) => {
+const STATUS_COLORS = {
+    pending: "bg-yellow-600/20 text-yellow-400",
+    accepted: "bg-green-600/20 text-green-400",
+    rejected: "bg-red-600/20 text-red-400",
+    completed: "bg-blue-600/20 text-blue-400",
+    cancelled: "bg-gray-600/20 text-gray-400",
+};
+
+const Clients = ({ clients, onAccept }) => {
+    const handleAccept = (clientId) => {
+        console.log("Accepting client hire request:", clientId);
+        if (onAccept) onAccept(clientId);
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -60,14 +57,25 @@ const Clients = ({ clients }) => {
                                     </h4>
                                 </div>
                             </div>
-                            <div
-                                className={`px-3 py-1 rounded-full text-xs ${
-                                    client.status === "Active"
-                                        ? "bg-green-600/20 text-green-400"
-                                        : "bg-gray-600/20 text-gray-400"
-                                }`}
-                            >
-                                {client.status}
+
+                            <div className="flex items-center space-x-2">
+                                <div
+                                    className={`px-3 py-1 rounded-full text-xs ${
+                                        STATUS_COLORS[client.hire_status] ||
+                                        "bg-gray-600/20 text-gray-400"
+                                    }`}
+                                >
+                                    {client.hire_status}
+                                </div>
+                                {client.hire_status === "pending" && (
+                                    <button
+                                        onClick={() => handleAccept(client.id)}
+                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded-full flex items-center space-x-1"
+                                    >
+                                        <Check className="w-3 h-3" />
+                                        <span>Accept</span>
+                                    </button>
+                                )}
                             </div>
                         </div>
 
