@@ -112,6 +112,7 @@ class LawyerCasesView(APIView):
 
     def post(self, request):
         user = request.user
+        print("Incoming POST data:", request.data)
 
         try:
             lawyer_profile = user.lawyer_profile

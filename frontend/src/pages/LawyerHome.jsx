@@ -55,6 +55,10 @@ const LawyerHome = () => {
         fetchCases();
     }, []);
 
+    const handleCaseAdded = (newCase) => {
+        setCases((prev) => [...prev, newCase]);
+    };
+
     const renderContent = () => {
         switch (activeTab) {
             case "profile":
@@ -62,7 +66,13 @@ const LawyerHome = () => {
             case "dashboard":
                 return null;
             case "cases":
-                return <Cases cases={cases} />;
+                return (
+                    <Cases
+                        cases={cases}
+                        onCaseAdded={handleCaseAdded}
+                        clients={clients}
+                    />
+                );
             case "clients":
                 return <Clients clients={clients} />;
             case "messages":
