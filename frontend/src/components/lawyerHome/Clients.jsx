@@ -8,6 +8,7 @@ import {
     Phone,
     Mail,
     Check,
+    X,
 } from "lucide-react";
 
 const STATUS_COLORS = {
@@ -18,10 +19,14 @@ const STATUS_COLORS = {
     cancelled: "bg-gray-600/20 text-gray-400",
 };
 
-const Clients = ({ clients, onAccept }) => {
+const Clients = ({ clients, handleClientRequest }) => {
     const handleAccept = (clientId) => {
         console.log("Accepting client hire request:", clientId);
-        if (onAccept) onAccept(clientId);
+        if (handleClientRequest) handleClientRequest(clientId, "accepted");
+    };
+    const handleReject = (clientId) => {
+        console.log("Rejecting client hire request:", clientId);
+        if (handleClientRequest) handleClientRequest(clientId, "rejected");
     };
 
     return (
@@ -58,9 +63,9 @@ const Clients = ({ clients, onAccept }) => {
                                 </div>
                             </div>
 
-                            <div className="flex items-center space-x-2">
+                            <div className="flex items-center space-x-3">
                                 <div
-                                    className={`px-3 py-1 rounded-full text-xs ${
+                                    className={`px-3 py-1 rounded-full text-xs font-medium ${
                                         STATUS_COLORS[client.hire_status] ||
                                         "bg-gray-600/20 text-gray-400"
                                     }`}
@@ -68,13 +73,26 @@ const Clients = ({ clients, onAccept }) => {
                                     {client.hire_status}
                                 </div>
                                 {client.hire_status === "pending" && (
-                                    <button
-                                        onClick={() => handleAccept(client.id)}
-                                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 text-xs rounded-full flex items-center space-x-1"
-                                    >
-                                        <Check className="w-3 h-3" />
-                                        <span>Accept</span>
-                                    </button>
+                                    <div className="flex items-center space-x-2">
+                                        <button
+                                            onClick={() =>
+                                                handleAccept(client.id)
+                                            }
+                                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 text-xs rounded-lg flex items-center space-x-1 transition-colors shadow-sm"
+                                        >
+                                            <Check className="w-3 h-3" />
+                                            <span>Accept</span>
+                                        </button>
+                                        <button
+                                            onClick={() =>
+                                                handleReject(client.id)
+                                            }
+                                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1.5 text-xs rounded-lg flex items-center space-x-1 transition-colors shadow-sm"
+                                        >
+                                            <X className="w-3 h-3" />
+                                            <span>Reject</span>
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>
@@ -114,23 +132,23 @@ const Clients = ({ clients, onAccept }) => {
                             </div>
                         </div>
 
-                        <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                                <button className="text-blue-400 hover:text-blue-300 p-1">
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-700">
+                            <div className="flex items-center space-x-1">
+                                <button className="text-blue-400 hover:text-blue-300 hover:bg-blue-600/10 p-2 rounded-lg transition-colors">
                                     <Phone className="w-4 h-4" />
                                 </button>
-                                <button className="text-blue-400 hover:text-blue-300 p-1">
+                                <button className="text-blue-400 hover:text-blue-300 hover:bg-blue-600/10 p-2 rounded-lg transition-colors">
                                     <Mail className="w-4 h-4" />
                                 </button>
-                                <button className="text-blue-400 hover:text-blue-300 p-1">
+                                <button className="text-blue-400 hover:text-blue-300 hover:bg-blue-600/10 p-2 rounded-lg transition-colors">
                                     <MessageCircle className="w-4 h-4" />
                                 </button>
                             </div>
-                            <div className="flex items-center space-x-2">
-                                <button className="text-blue-400 hover:text-blue-300 p-1">
+                            <div className="flex items-center space-x-1">
+                                <button className="text-gray-400 hover:text-gray-300 hover:bg-gray-600/20 p-2 rounded-lg transition-colors">
                                     <Eye className="w-4 h-4" />
                                 </button>
-                                <button className="text-blue-400 hover:text-blue-300 p-1">
+                                <button className="text-gray-400 hover:text-gray-300 hover:bg-gray-600/20 p-2 rounded-lg transition-colors">
                                     <Edit className="w-4 h-4" />
                                 </button>
                             </div>

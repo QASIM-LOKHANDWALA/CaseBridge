@@ -88,6 +88,37 @@ const LawyerHome = () => {
         }
     };
 
+    const handleClientRequest = async (hireId, status) => {
+        try {
+            console.log(status);
+
+            const response = await axios.patch(
+                `http://localhost:8000/api/hire/${hireId}/respond/`,
+                {
+                    status: status,
+                },
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                const updatedClients = clients.map((client) =>
+                    client.hire_id === hireId
+                        ? { ...client, hire_status: status }
+                        : client
+                );
+                console.log("Client hire request accepted: ", response.data);
+
+                setClients(updatedClients);
+            }
+        } catch (error) {
+            console.error("Error accepting client hire request: ", error);
+        }
+    };
+
     const renderContent = () => {
         switch (activeTab) {
             case "profile":
@@ -106,7 +137,10 @@ const LawyerHome = () => {
                 );
             case "clients":
                 return (
-                    <Clients clients={clients} onAccept={handleAcceptClient} />
+                    <Clients
+                        clients={clients}
+                        handleClientRequest={handleClientRequest}
+                    />
                 );
             case "messages":
                 return null;

@@ -1,5 +1,3 @@
-# myapp/utils/rag_engine.py
-
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate 
