@@ -81,7 +81,7 @@ const logoutUser = createAsyncThunk(
         try {
             const token = getState().auth.token;
 
-            const response = await fetch("http://127.0.0.1:8000/user/logout", {
+            const response = await fetch("http://127.0.0.1:8000/user/logout/", {
                 method: "POST",
                 headers: {
                     Authorization: `Token ${token}`,

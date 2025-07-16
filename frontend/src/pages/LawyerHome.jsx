@@ -15,77 +15,51 @@ import useAuth from "../hooks/useAuth";
 import axios from "axios";
 import Clients from "../components/lawyerHome/Clients";
 import Cases from "../components/lawyerHome/Cases";
+import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
     const [showNotifications, setShowNotifications] = useState(false);
     const [clients, setClients] = useState([]);
     const [cases, setCases] = useState([]);
-    const { user, token } = useAuth();
+    const { user, token, logout } = useAuth();
+    const navigate = useNavigate();
+
+    const fetchClients = async () => {
+        const lawyerId = user.lawyer_profile.id;
+        const response = await axios.get(
+            `http://localhost:8000/api/lawyers/clients/${lawyerId}/`,
+            {
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            }
+        );
+        console.log(response.data);
+        setClients(response.data);
+    };
+
+    const fetchCases = async () => {
+        const response = await axios.get(
+            `http://localhost:8000/api/lawyers/cases`,
+            {
+                headers: {
+                    Authorization: `Token ${token}`,
+                },
+            }
+        );
+        console.log(response.data);
+        setCases(response.data.cases);
+    };
 
     useEffect(() => {
-        const fetchClients = async () => {
-            const lawyerId = user.lawyer_profile.id;
-            const response = await axios.get(
-                `http://localhost:8000/api/lawyers/clients/${lawyerId}/`,
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-            console.log(response.data);
-            setClients(response.data);
-        };
-
-        const fetchCases = async () => {
-            const lawyerId = user.lawyer_profile.id;
-            const response = await axios.get(
-                `http://localhost:8000/api/lawyers/cases`,
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-            console.log(response.data);
-            setCases(response.data.cases);
-        };
         fetchClients();
         fetchCases();
     }, []);
 
     const handleCaseAdded = (newCase) => {
         setCases((prev) => [...prev, newCase]);
-    };
-
-    const handleAcceptClient = async (hireId) => {
-        try {
-            const response = await axios.patch(
-                `http://localhost:8000/api/hire/${hireId}/respond/`,
-                {
-                    status: "accepted",
-                },
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-
-            if (response.status === 200) {
-                const updatedClients = clients.map((client) =>
-                    client.hire_id === hireId
-                        ? { ...client, hire_status: "accepted" }
-                        : client
-                );
-                console.log("Client hire request accepted: ", response.data);
-
-                setClients(updatedClients);
-            }
-        } catch (error) {
-            console.error("Error accepting client hire request: ", error);
-        }
     };
 
     const handleClientRequest = async (hireId, status) => {
@@ -119,6 +93,20 @@ const LawyerHome = () => {
         }
     };
 
+    const handleLogout = async (e) => {
+        e.preventDefault();
+        try {
+            const data = await logout();
+            console.log(data);
+
+            toast.success("Logout Successfull!");
+            navigate("/");
+        } catch (err) {
+            console.error("Auth error:", err);
+            toast.error(`Logout failed. ${err}`);
+        }
+    };
+
     const renderContent = () => {
         switch (activeTab) {
             case "profile":
@@ -130,6 +118,7 @@ const LawyerHome = () => {
                     <Cases
                         cases={cases}
                         onCaseAdded={handleCaseAdded}
+                        fetchCases={fetchCases}
                         clients={clients.filter(
                             (client) => client.hire_status === "accepted"
                         )}
@@ -139,6 +128,7 @@ const LawyerHome = () => {
                 return (
                     <Clients
                         clients={clients}
+                        fetchClients={fetchClients}
                         handleClientRequest={handleClientRequest}
                     />
                 );
@@ -177,7 +167,7 @@ const LawyerHome = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gray-900">
+        <div className="h-screen flex flex-col bg-gray-900">
             <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
                 <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
@@ -265,8 +255,8 @@ const LawyerHome = () => {
                 </div>
             </header>
 
-            <div className="flex">
-                <nav className="w-64 bg-gray-800 border-r border-gray-700 min-h-screen">
+            <div className="flex flex-1 overflow-hidden">
+                <nav className="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto">
                     <div className="p-4">
                         <div className="space-y-2">
                             <button
@@ -342,7 +332,10 @@ const LawyerHome = () => {
                             </button>
 
                             <div className="border-t border-gray-700 pt-4 mt-4">
-                                <button className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                                >
                                     <LogOut className="w-5 h-5" />
                                     <span>Logout</span>
                                 </button>
@@ -351,7 +344,9 @@ const LawyerHome = () => {
                     </div>
                 </nav>
 
-                <main className="flex-1 p-6">{renderContent()}</main>
+                <main className="flex-1 overflow-y-auto p-6">
+                    {renderContent()}
+                </main>
             </div>
         </div>
     );

@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
+import { Link } from "react-router-dom";
 
 const AuthPage = () => {
     const [isSignup, setIsSignup] = useState(false);
@@ -183,11 +184,6 @@ const AuthPage = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 flex items-center justify-center px-4 py-8">
-            <div className="absolute inset-0 overflow-hidden">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl"></div>
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-600/10 rounded-full blur-3xl"></div>
-            </div>
-
             <div className="relative w-full max-w-5xl">
                 <div className="grid lg:grid-cols-2 gap-8 items-center">
                     <div className="hidden lg:block">
@@ -195,7 +191,7 @@ const AuthPage = () => {
                             <h1 className="text-4xl font-bold text-white mb-4">
                                 Welcome to{" "}
                                 <span className="text-blue-400">
-                                    Case Bridge
+                                    <Link to="/">Case Bridge</Link>
                                 </span>
                             </h1>
                             <p className="text-gray-300 text-lg">

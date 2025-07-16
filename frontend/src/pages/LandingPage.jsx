@@ -18,6 +18,7 @@ import {
     Scale,
     BookOpen,
 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const LandingPage = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -112,7 +113,7 @@ const LandingPage = () => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
                             <span className="text-2xl font-bold text-white">
-                                Case Bridge
+                                <Link to="/">Case Bridge</Link>
                             </span>
                         </div>
 
@@ -135,9 +136,12 @@ const LandingPage = () => {
                             >
                                 Testimonials
                             </a>
-                            <button className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">
+                            <Link
+                                to="/auth"
+                                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors"
+                            >
                                 Get Started
-                            </button>
+                            </Link>
                         </div>
 
                         <button
@@ -174,9 +178,12 @@ const LandingPage = () => {
                                     Testimonials
                                 </a>
 
-                                <button className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold text-left">
+                                <Link
+                                    to="/auth"
+                                    className="bg-blue-600 text-white px-6 py-2 rounded-lg font-semibold text-left"
+                                >
                                     Get Started
-                                </button>
+                                </Link>
                             </div>
                         </div>
                     )}
@@ -219,10 +226,13 @@ const LandingPage = () => {
                             </p>
 
                             <div className="flex flex-col sm:flex-row gap-4 mb-8">
-                                <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2">
+                                <Link
+                                    to="/auth"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors flex items-center justify-center space-x-2"
+                                >
                                     <span>Start Your Legal Journey</span>
                                     <ArrowRight className="w-5 h-5" />
-                                </button>
+                                </Link>
                             </div>
 
                             <div className="flex items-center space-x-6 text-sm text-gray-400">
@@ -513,10 +523,13 @@ const LandingPage = () => {
                             legal services in India. Your legal journey starts
                             here.
                         </p>
-                        <button className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors inline-flex items-center space-x-2">
+                        <Link
+                            to="/auth"
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-lg font-semibold text-lg transition-colors inline-flex items-center space-x-2"
+                        >
                             <span>Get Started Now</span>
                             <ArrowRight className="w-5 h-5" />
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </section>

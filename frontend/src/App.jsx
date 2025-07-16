@@ -14,15 +14,45 @@ const App = () => {
     return (
         <div>
             <Routes>
-                <Route path="/" element={<LandingPage />} />
-                <Route path="/auth" element={<AuthPage />} />
+                <Route
+                    path="/"
+                    element={
+                        user != null ? (
+                            user.role === "client" ? (
+                                <ClientHome />
+                            ) : (
+                                <LawyerHome />
+                            )
+                        ) : (
+                            <LandingPage />
+                        )
+                    }
+                />
+                <Route
+                    path="/auth"
+                    element={
+                        user != null ? (
+                            user.role === "client" ? (
+                                <ClientHome />
+                            ) : (
+                                <LawyerHome />
+                            )
+                        ) : (
+                            <AuthPage />
+                        )
+                    }
+                />
                 <Route
                     path="/home"
                     element={
-                        user && user.role === "client" ? (
-                            <ClientHome />
+                        user != null ? (
+                            user.role === "client" ? (
+                                <ClientHome />
+                            ) : (
+                                <LawyerHome />
+                            )
                         ) : (
-                            <LawyerHome />
+                            <AuthPage />
                         )
                     }
                 />
