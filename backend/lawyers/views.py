@@ -12,6 +12,10 @@ from users.serializers import UserSerializer
 from appointments.serializers import CaseAppointmentSerializer
 from rest_framework import status
 from django.utils import timezone
+from rest_framework.parsers import MultiPartParser, FormParser
+from .serializers import CaseDocumentSerializer
+
+
 class LawyerListView(ListAPIView):
     queryset = User.objects.filter(role='lawyer')
     serializer_class = UserSerializer
@@ -107,7 +111,15 @@ class LawyerCasesView(APIView):
                     "next_hearing": case.next_hearing,
                     "status": case.status,
                     "priority": case.priority,
-                    "created_at": case.created_at
+                    "created_at": case.created_at,
+                    "documents": [
+                        {
+                            "id": doc.id,
+                            "title": doc.title,
+                            "document": request.build_absolute_uri(doc.document.url),
+                            "uploaded_at": doc.uploaded_at
+                        } for doc in case.documents.all()
+                    ]
                 } for case in cases
             ]
         }, status=status.HTTP_200_OK)
@@ -163,3 +175,24 @@ class LawyerCasesView(APIView):
 
         except Exception as e:
             return Response({"error": "Failed to create legal case.", "details": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+class UploadCaseDocumentView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def post(self, request, case_id):
+        user = request.user
+
+        try:
+            legal_case = LegalCase.objects.get(id=case_id, lawyer=user.lawyer_profile)
+        except LegalCase.DoesNotExist:
+            return Response({"error": "Case not found or unauthorized."}, status=status.HTTP_404_NOT_FOUND)
+
+        data = request.data.copy()
+        data['legal_case'] = legal_case.id
+
+        serializer = CaseDocumentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Document uploaded successfully.", "document": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

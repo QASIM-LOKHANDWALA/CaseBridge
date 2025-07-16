@@ -69,3 +69,12 @@ class LegalCase(models.Model):
 
     def __str__(self):
         return f"{self.title} ({self.case_number})"
+
+class CaseDocument(models.Model):
+    legal_case = models.ForeignKey('LegalCase', on_delete=models.CASCADE, related_name='documents')
+    title = models.CharField(max_length=255)
+    document = models.FileField(upload_to='case_documents/')
+    uploaded_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.title} for {self.legal_case.case_number}"
