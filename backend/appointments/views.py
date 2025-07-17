@@ -43,3 +43,58 @@ class ScheduleAppointmentView(APIView):
 
         serializer = CaseAppointmentSerializer(appointment)
         return Response(serializer.data, status=status.HTTP_201_CREATED)
+    
+class LawyerAppointmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            lawyer_profile = LawyerProfile.objects.get(user=request.user)
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "Only lawyers can view their appointments."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointments = CaseAppointment.objects.filter(lawyer=lawyer_profile).order_by('-appointment_date')
+        serializer = CaseAppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class UpdateAppointmentStatusView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def patch(self, request, appointment_id):
+        try:
+            lawyer_profile = LawyerProfile.objects.get(user=request.user)
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "Only lawyers can update appointment status."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointment = get_object_or_404(CaseAppointment, id=appointment_id)
+
+        if appointment.lawyer != lawyer_profile:
+            return Response({"error": "Unauthorized to update this appointment."}, status=status.HTTP_403_FORBIDDEN)
+
+        new_status = request.data.get("status")
+        if new_status not in dict(CaseAppointment.STATUS_CHOICES):
+            return Response({"error": "Invalid status value."}, status=status.HTTP_400_BAD_REQUEST)
+
+        appointment.status = new_status
+        appointment.save()
+        serializer = CaseAppointmentSerializer(appointment)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class DeleteAppointmentView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def delete(self, request, appointment_id):
+        try:
+            lawyer_profile = LawyerProfile.objects.get(user=request.user)
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "Only lawyers can delete appointments."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointment = get_object_or_404(CaseAppointment, id=appointment_id)
+
+        if appointment.lawyer != lawyer_profile:
+            return Response({"error": "Unauthorized to delete this appointment."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointment.delete()
+        return Response({"message": "Appointment deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
