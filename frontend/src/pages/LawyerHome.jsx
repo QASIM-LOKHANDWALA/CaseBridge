@@ -17,6 +17,7 @@ import Clients from "../components/lawyerHome/Clients";
 import Cases from "../components/lawyerHome/Cases";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+import Appointments from "../components/lawyerHome/Appointments";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -111,8 +112,8 @@ const LawyerHome = () => {
         switch (activeTab) {
             case "profile":
                 return <Profile />;
-            case "dashboard":
-                return null;
+            case "appointments":
+                return <Appointments clients={clients} />;
             case "cases":
                 return (
                     <Cases
@@ -260,18 +261,6 @@ const LawyerHome = () => {
                     <div className="p-4">
                         <div className="space-y-2">
                             <button
-                                onClick={() => setActiveTab("dashboard")}
-                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                                    activeTab === "dashboard"
-                                        ? "bg-blue-600 text-white"
-                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
-                                }`}
-                            >
-                                <Home className="w-5 h-5" />
-                                <span>Dashboard</span>
-                            </button>
-
-                            <button
                                 onClick={() => setActiveTab("profile")}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                                     activeTab === "profile"
@@ -281,6 +270,18 @@ const LawyerHome = () => {
                             >
                                 <User className="w-5 h-5" />
                                 <span>Profile</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("appointments")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "dashboard"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Home className="w-5 h-5" />
+                                <span>Appointments</span>
                             </button>
 
                             <button

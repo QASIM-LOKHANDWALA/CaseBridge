@@ -22,6 +22,7 @@ class ScheduleAppointmentView(APIView):
             return Response({"error": "Only lawyers can schedule appointments."}, status=status.HTTP_403_FORBIDDEN)
 
         data = request.data.copy()
+        print(data)
         user_id = data.get("user_id")
         appointment_date = data.get("appointment_date")
         appointment_time = data.get("appointment_time")

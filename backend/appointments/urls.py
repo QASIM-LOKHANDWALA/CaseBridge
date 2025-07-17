@@ -3,7 +3,7 @@ from . import views
 
 urlpatterns = [
     path('schedule-appointment/', views.ScheduleAppointmentView.as_view(), name='schedule-appointment'),
-    path('appointments/',  views.LawyerAppointmentsView.as_view(), name='lawyer-appointments'),
-    path('appointments/<int:appointment_id>/status/',  views.UpdateAppointmentStatusView.as_view(), name='update-appointment-status'),
-    path('appointments/<int:appointment_id>/delete/',  views.DeleteAppointmentView.as_view(), name='delete-appointment'),
+    path('',  views.LawyerAppointmentsView.as_view(), name='lawyer-appointments'),
+    path('<int:appointment_id>/status/',  views.UpdateAppointmentStatusView.as_view(), name='update-appointment-status'),
+    path('<int:appointment_id>/delete/',  views.DeleteAppointmentView.as_view(), name='delete-appointment'),
 ]
