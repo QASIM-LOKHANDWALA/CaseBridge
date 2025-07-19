@@ -1,20 +1,9 @@
 import React, { useState, useEffect } from "react";
-import {
-    Search,
-    Filter,
-    MapPin,
-    Star,
-    Shield,
-    Calendar,
-    Users,
-    MessageCircle,
-    ArrowRight,
-    CheckCircle,
-    Award,
-    BookOpen,
-    Clock,
-} from "lucide-react";
+import { Search, Filter, Shield } from "lucide-react";
 import LawyerCard from "../components/clientHome/LawyerCard";
+import axios from "axios";
+import useAuth from "../hooks/useAuth";
+import ClientNavbar from "../components/clientHome/ClientNavbar";
 
 const ClientHome = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +11,8 @@ const ClientHome = () => {
     const [experienceFilter, setExperienceFilter] = useState("");
     const [specializationFilter, setSpecializationFilter] = useState("");
     const [showFilters, setShowFilters] = useState(false);
+    const [lawyers, setLawyers] = useState([]);
+    const { token } = useAuth();
 
     const indianCities = [
         "Mumbai",
@@ -69,98 +60,47 @@ const ClientHome = () => {
         { value: "16+", label: "16+ years" },
     ];
 
-    const sampleLawyers = [
-        {
-            id: 1,
-            full_name: "Adv. Priya Sharma",
-            specialization: "corporate",
-            experience_years: "6-10",
-            location: "Mumbai",
-            bio: "Corporate law specialist with extensive experience in M&A, compliance, and startup legal matters.",
-            rating: 4.8,
-            profile_picture: null,
-            is_verified: true,
-            cases_won: 156,
-            clients_served: 89,
-        },
-        {
-            id: 2,
-            full_name: "Adv. Rajesh Kumar",
-            specialization: "criminal",
-            experience_years: "11-15",
-            location: "Delhi",
-            bio: "Criminal defense attorney with a proven track record in high-profile cases and appellate matters.",
-            rating: 4.9,
-            profile_picture: null,
-            is_verified: true,
-            cases_won: 234,
-            clients_served: 145,
-        },
-        {
-            id: 3,
-            full_name: "Adv. Meera Patel",
-            specialization: "family",
-            experience_years: "3-5",
-            location: "Ahmedabad",
-            bio: "Family law expert specializing in divorce, custody, and matrimonial disputes with compassionate approach.",
-            rating: 4.7,
-            profile_picture: null,
-            is_verified: true,
-            cases_won: 78,
-            clients_served: 67,
-        },
-        {
-            id: 4,
-            full_name: "Adv. Arjun Singh",
-            specialization: "civil",
-            experience_years: "16+",
-            location: "Bengaluru",
-            bio: "Senior civil litigation lawyer with expertise in property disputes, contracts, and commercial litigation.",
-            rating: 4.9,
-            profile_picture: null,
-            is_verified: true,
-            cases_won: 412,
-            clients_served: 298,
-        },
-        {
-            id: 5,
-            full_name: "Adv. Kavitha Reddy",
-            specialization: "intellectual_property",
-            experience_years: "6-10",
-            location: "Hyderabad",
-            bio: "IP law specialist focusing on patents, trademarks, and technology licensing for startups and corporations.",
-            rating: 4.8,
-            profile_picture: null,
-            is_verified: true,
-            cases_won: 143,
-            clients_served: 76,
-        },
-        {
-            id: 6,
-            full_name: "Adv. Vikram Joshi",
-            specialization: "general",
-            experience_years: "0-2",
-            location: "Pune",
-            bio: "General practice lawyer providing comprehensive legal services for individuals and small businesses.",
-            rating: 4.5,
-            profile_picture: null,
-            is_verified: false,
-            cases_won: 23,
-            clients_served: 34,
-        },
-    ];
+    const fetchLawyers = async () => {
+        try {
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/lawyers/list/",
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            console.log(`Fetch Lawyers Response : `, response.data);
 
-    const filteredLawyers = sampleLawyers.filter((lawyer) => {
+            if (response.status === 200) {
+                setLawyers(response.data);
+            }
+        } catch (error) {
+            console.log(`Error fetching lawyers: ${error}`);
+        }
+    };
+
+    useEffect(() => {
+        fetchLawyers();
+    }, []);
+
+    const filteredLawyers = lawyers.filter((lawyer) => {
         const matchesSearch =
-            lawyer.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            lawyer.bio.toLowerCase().includes(searchTerm.toLowerCase());
+            lawyer.lawyer_profile.full_name
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase()) ||
+            lawyer.lawyer_profile.bio
+                .toLowerCase()
+                .includes(searchTerm.toLowerCase());
         const matchesLocation =
-            !locationFilter || lawyer.location === locationFilter;
+            !locationFilter ||
+            lawyer.lawyer_profile.location === locationFilter;
         const matchesExperience =
-            !experienceFilter || lawyer.experience_years === experienceFilter;
+            !experienceFilter ||
+            lawyer.lawyer_profile.experience_years === experienceFilter;
         const matchesSpecialization =
             !specializationFilter ||
-            lawyer.specialization === specializationFilter;
+            lawyer.lawyer_profile.specialization === specializationFilter;
 
         return (
             matchesSearch &&
@@ -190,7 +130,9 @@ const ClientHome = () => {
 
     return (
         <div className="min-h-screen bg-gray-900 text-white">
-            <div className="bg-gray-800 border-b border-gray-700 sticky top-0 z-50">
+            <ClientNavbar />
+
+            <div className="pt-20 bg-gray-800 border-b border-gray-700">
                 <div className="container mx-auto px-4 py-6">
                     <div className="flex items-center justify-between mb-6">
                         <h1 className="text-3xl font-bold">
@@ -322,6 +264,7 @@ const ClientHome = () => {
                 </div>
             </div>
 
+            {/* Main Content Section */}
             <div className="container mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-semibold">
@@ -334,7 +277,11 @@ const ClientHome = () => {
 
                 <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
                     {filteredLawyers.map((lawyer) => (
-                        <LawyerCard key={lawyer.id} lawyer={lawyer} getSpecializationLabel={getSpecializationLabel} />
+                        <LawyerCard
+                            key={lawyer.id}
+                            lawyer={lawyer}
+                            getSpecializationLabel={getSpecializationLabel}
+                        />
                     ))}
                 </div>
 

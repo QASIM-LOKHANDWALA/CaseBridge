@@ -16,20 +16,22 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
             <div className="flex items-start justify-between mb-4">
                 <div className="flex items-center space-x-3">
                     <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                        {lawyer.full_name
+                        {lawyer.lawyer_profile.full_name
                             .split(" ")
                             .map((n) => n[0])
                             .join("")}
                     </div>
                     <div>
                         <h3 className="text-lg font-semibold text-white group-hover:text-blue-300 transition-colors">
-                            {lawyer.full_name}
+                            {lawyer.lawyer_profile.full_name}
                         </h3>
                         <div className="flex items-center space-x-2">
                             <span className="text-sm text-blue-400">
-                                {getSpecializationLabel(lawyer.specialization)}
+                                {getSpecializationLabel(
+                                    lawyer.lawyer_profile.specialization
+                                )}
                             </span>
-                            {lawyer.is_verified && (
+                            {lawyer.lawyer_profile.is_verified && (
                                 <CheckCircle className="w-4 h-4 text-green-400" />
                             )}
                         </div>
@@ -39,7 +41,7 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
                     <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
                         <span className="text-sm font-medium">
-                            {lawyer.rating}
+                            {lawyer.lawyer_profile.rating}
                         </span>
                     </div>
                 </div>
@@ -48,16 +50,16 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
             <div className="flex items-center space-x-4 mb-4 text-sm text-gray-400">
                 <div className="flex items-center space-x-1">
                     <MapPin className="w-4 h-4" />
-                    <span>{lawyer.location}</span>
+                    <span>{lawyer.lawyer_profile.location}</span>
                 </div>
                 <div className="flex items-center space-x-1">
                     <Clock className="w-4 h-4" />
-                    <span>{lawyer.experience_years} exp</span>
+                    <span>{lawyer.lawyer_profile.experience_years} exp</span>
                 </div>
             </div>
 
             <p className="text-gray-300 text-sm mb-4 line-clamp-3">
-                {lawyer.bio}
+                {lawyer.lawyer_profile.bio}
             </p>
 
             <div className="grid grid-cols-2 gap-4 mb-6">
@@ -69,7 +71,7 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
                                 Cases Won
                             </div>
                             <div className="text-sm font-semibold">
-                                {lawyer.cases_won}
+                                {lawyer.lawyer_profile.cases_won}
                             </div>
                         </div>
                     </div>
@@ -82,7 +84,7 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
                                 Clients Served
                             </div>
                             <div className="text-sm font-semibold">
-                                {lawyer.clients_served}
+                                {lawyer.lawyer_profile.clients_served}
                             </div>
                         </div>
                     </div>

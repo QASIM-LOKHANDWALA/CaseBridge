@@ -112,9 +112,10 @@ const LandingPage = () => {
                 <nav className="container mx-auto px-4 py-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-2">
-                            <span className="text-2xl font-bold text-white">
-                                <Link to="/">Case Bridge</Link>
-                            </span>
+                            <div className="text-2xl font-bold text-white">
+                                Case
+                                <span className="text-blue-400">Bridge</span>
+                            </div>
                         </div>
 
                         <div className="hidden md:flex items-center space-x-8">
