@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import LandingPage from "./pages/LandingPage";
 import AuthPage from "./pages/AuthPage";
 import ClientHome from "./pages/ClientHome";
@@ -11,6 +11,10 @@ import LawyerHome from "./pages/LawyerHome";
 const App = () => {
     const { user } = useAuth();
 
+    useEffect(() => {
+        console.log(user);
+    }, [user]);
+
     return (
         <div>
             <Routes>
@@ -18,7 +22,7 @@ const App = () => {
                     path="/"
                     element={
                         user != null ? (
-                            user.role === "client" ? (
+                            user.role === "general" ? (
                                 <ClientHome />
                             ) : (
                                 <LawyerHome />
@@ -32,7 +36,7 @@ const App = () => {
                     path="/auth"
                     element={
                         user != null ? (
-                            user.role === "client" ? (
+                            user.role === "general" ? (
                                 <ClientHome />
                             ) : (
                                 <LawyerHome />
@@ -46,7 +50,7 @@ const App = () => {
                     path="/home"
                     element={
                         user != null ? (
-                            user.role === "client" ? (
+                            user.role === "general" ? (
                                 <ClientHome />
                             ) : (
                                 <LawyerHome />
@@ -56,7 +60,7 @@ const App = () => {
                         )
                     }
                 />
-                <Route path="/chat/:participantId" element={<ChatPage />} />
+                <Route path="/chat" element={<ChatPage />} />
             </Routes>
             <Toaster />
         </div>

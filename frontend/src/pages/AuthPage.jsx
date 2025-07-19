@@ -19,9 +19,11 @@ import {
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const AuthPage = () => {
+    const navigate = useNavigate();
+
     const [isSignup, setIsSignup] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const [currentStep, setCurrentStep] = useState(1);
@@ -113,6 +115,7 @@ const AuthPage = () => {
                 const data = await login(formData);
                 toast.success(`Logged in as ${data.user.email}`);
             }
+            navigate("/home");
         } catch (err) {
             console.error("Auth error:", err);
             toast.error(`Authentication failed. ${err}`);
