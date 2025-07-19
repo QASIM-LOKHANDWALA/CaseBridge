@@ -19,7 +19,7 @@ import toast from "react-hot-toast";
 import axios from "axios";
 
 const Profile = () => {
-    const { user, token } = useAuth();
+    const { user, token, profile } = useAuth();
 
     const getExperienceText = (experienceYears) => {
         const experienceMap = {
@@ -68,6 +68,9 @@ const Profile = () => {
                 }
             );
             if (response.status === 201) {
+                const response = await profile();
+                console.log("Profile refresh: ", response.data);
+
                 toast.success("Documents uploaded successfully");
             }
             window.location.reload();

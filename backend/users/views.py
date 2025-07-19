@@ -8,6 +8,7 @@ from users.models import User
 from clients.models import GeneralUserProfile
 from lawyers.models import LawyerProfile
 from users.serializers import UserSerializer
+from rest_framework.permissions import IsAuthenticated
 
 class SignupView(APIView):
     permission_classes = [permissions.AllowAny]
@@ -118,3 +119,11 @@ class LogoutView(APIView):
             return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:
             return Response({"error": "Token not found"}, status=status.HTTP_400_BAD_REQUEST)
+        
+class UserProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response({"user": serializer.data})

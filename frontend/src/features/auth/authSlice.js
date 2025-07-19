@@ -109,6 +109,33 @@ const logoutUser = createAsyncThunk(
     }
 );
 
+const fetchUserProfile = createAsyncThunk(
+    "auth/fetchUserProfile",
+    async (_, { getState, rejectWithValue }) => {
+        const token = getState().auth.token;
+        try {
+            const response = await axios.get(
+                "http://localhost:8000/user/profile/",
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                return response.data.user;
+            }
+
+            return rejectWithValue("Failed to fetch user profile");
+        } catch (error) {
+            return rejectWithValue(
+                error.response?.data?.error || error.message || "Fetch error"
+            );
+        }
+    }
+);
+
 export const authSlice = createSlice({
     name: "auth",
     initialState: {
@@ -170,6 +197,18 @@ export const authSlice = createSlice({
             .addCase(logoutUser.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+
+            .addCase(fetchUserProfile.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchUserProfile.fulfilled, (state, action) => {
+                state.loading = false;
+                state.user = action.payload;
+            })
+            .addCase(fetchUserProfile.rejected, (state, action) => {
+                state.loading = false;
+                state.error = action.payload || "Failed to refresh user data";
             });
     },
 });
@@ -178,4 +217,4 @@ export const {} = authSlice.actions;
 
 export default authSlice.reducer;
 
-export { loginUser, signUpUser, logoutUser };
+export { loginUser, signUpUser, logoutUser, fetchUserProfile };

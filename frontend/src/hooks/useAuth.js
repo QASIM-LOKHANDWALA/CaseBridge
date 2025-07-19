@@ -1,5 +1,10 @@
 import { useDispatch, useSelector } from "react-redux";
-import { loginUser, signUpUser, logoutUser } from "../features/auth/authSlice";
+import {
+    loginUser,
+    signUpUser,
+    logoutUser,
+    fetchUserProfile,
+} from "../features/auth/authSlice";
 
 const useAuth = () => {
     const dispatch = useDispatch();
@@ -11,6 +16,7 @@ const useAuth = () => {
     const login = (credentials) => dispatch(loginUser(credentials)).unwrap();
     const signup = (data) => dispatch(signUpUser(data)).unwrap();
     const logout = () => dispatch(logoutUser()).unwrap();
+    const profile = () => dispatch(fetchUserProfile()).unwrap();
 
     return {
         user,
@@ -21,6 +27,7 @@ const useAuth = () => {
         login,
         signup,
         logout,
+        profile,
     };
 };
 
