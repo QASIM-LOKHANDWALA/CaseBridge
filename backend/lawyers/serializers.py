@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import LawyerProfile, CaseDocument
+from .models import LawyerProfile, CaseDocument, LawyerDocuments
 
 class CaseDocumentSerializer(serializers.ModelSerializer):
     class Meta:
@@ -7,8 +7,13 @@ class CaseDocumentSerializer(serializers.ModelSerializer):
         fields = ['id', 'legal_case', 'title', 'document', 'uploaded_at']
         read_only_fields = ['uploaded_at']
         
+class LawyerDocumentsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LawyerDocuments
+        fields = ['uploaded', 'photo_id', 'cop']
+        
 class LawyerProfileSerializer(serializers.ModelSerializer):
-    documents = CaseDocumentSerializer(many=True, read_only=True)
+    documents = LawyerDocumentsSerializer(read_only=True)
     
     class Meta:
         model = LawyerProfile

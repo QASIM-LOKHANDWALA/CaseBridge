@@ -4,10 +4,11 @@ from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import LawyerProfile, LegalCase
+from .models import LawyerProfile, LegalCase, LawyerDocuments
 from users.models import User
 from appointments.models import CaseAppointment
 from clients.models import GeneralUserProfile
+from .serializers import LawyerDocumentsSerializer
 from users.serializers import UserSerializer
 from appointments.serializers import CaseAppointmentSerializer
 from rest_framework import status
@@ -195,4 +196,39 @@ class UploadCaseDocumentView(APIView):
         if serializer.is_valid():
             serializer.save()
             return Response({"message": "Document uploaded successfully.", "document": serializer.data}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class LawyerDocumentUploadView(APIView):
+    permission_classes = [IsAuthenticated]
+    parser_classes = [MultiPartParser, FormParser]
+
+    def get_lawyer_profile(self, user):
+        try:
+            return LawyerProfile.objects.get(user=user)
+        except LawyerProfile.DoesNotExist:
+            return None
+
+    def get(self, request):
+        profile = self.get_lawyer_profile(request.user)
+        if not profile or not hasattr(profile, 'documents'):
+            return Response({"detail": "Documents not found."}, status=status.HTTP_404_NOT_FOUND)
+        
+        serializer = LawyerDocumentsSerializer(profile.documents)
+        return Response(serializer.data)
+
+    def post(self, request):
+        profile = self.get_lawyer_profile(request.user)
+        if not profile:
+            return Response({"detail": "Lawyer profile not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            document = profile.documents
+            if document.uploaded:
+                return Response({"message":"Documents Already Uploaded."}, status=status.HTTP_204_NO_CONTENT)
+        except LawyerDocuments.DoesNotExist:
+            serializer = LawyerDocumentsSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(lawyer=profile, uploaded=True)
+                return Response({"message":"Documents Uploaded For Verification."}, status=status.HTTP_201_CREATED)
+
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

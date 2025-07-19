@@ -110,7 +110,7 @@ const AuthPage = () => {
         try {
             if (isSignup) {
                 const data = await signup(formData);
-                toast.success(`Welcome, ${data.user.full_name}`);
+                toast.success(`Welcome To CaseBridge!`);
             } else {
                 const data = await login(formData);
                 toast.success(`Logged in as ${data.user.email}`);

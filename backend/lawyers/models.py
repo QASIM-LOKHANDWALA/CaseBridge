@@ -38,6 +38,12 @@ class LawyerProfile(models.Model):
     def __str__(self):
         return self.full_name
 
+class LawyerDocuments(models.Model):
+    lawyer = models.OneToOneField(LawyerProfile, on_delete=models.CASCADE, related_name="documents")
+    uploaded = models.BooleanField(default=False)
+    photo_id = models.FileField(upload_to="photo_id/", blank=True, null=True)
+    cop = models.FileField(upload_to="cop/", blank=True, null=True)
+
 class LegalCase(models.Model):
     STATUS_CHOICES = (
         ('active', 'Active'),

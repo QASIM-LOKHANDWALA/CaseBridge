@@ -10,11 +10,16 @@ import {
     Award,
     Calendar,
     Users,
+    Upload,
+    FileText,
+    AlertTriangle,
 } from "lucide-react";
 import useAuth from "../../hooks/useAuth";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const Profile = () => {
-    const { user } = useAuth();
+    const { user, token } = useAuth();
 
     const getExperienceText = (experienceYears) => {
         const experienceMap = {
@@ -37,6 +42,42 @@ const Profile = () => {
             general: "General Practice",
         };
         return specializationMap[specialization] || specialization;
+    };
+
+    const [documentForm, setDocumentForm] = React.useState({
+        photo_id: null,
+        cop: null,
+    });
+
+    const handleDocumentUpload = async (e) => {
+        e.preventDefault();
+        const formData = new FormData();
+        if (documentForm.photo_id)
+            formData.append("photo_id", documentForm.photo_id);
+        if (documentForm.cop) formData.append("cop", documentForm.cop);
+
+        try {
+            const response = await axios.post(
+                "http://localhost:8000/api/lawyers/documents/",
+                formData,
+                {
+                    headers: {
+                        "Content-Type": "multipart/form-data",
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            if (response.status === 201) {
+                toast.success("Documents uploaded successfully");
+            }
+            window.location.reload();
+        } catch (error) {
+            console.error(
+                "Document upload failed:",
+                error.response?.data || error.message
+            );
+            alert("Failed to upload documents");
+        }
     };
 
     return (
@@ -225,6 +266,140 @@ const Profile = () => {
                     <p className="text-sm text-gray-400">Clients Served</p>
                 </div>
             </div>
+
+            {user?.lawyer_profile?.documents === null && (
+                <div className="bg-gradient-to-r from-amber-900/50 to-orange-900/50 border border-amber-700/50 rounded-xl p-6 backdrop-blur-sm">
+                    <div className="flex items-center space-x-3 mb-4">
+                        <div className="p-2 bg-amber-600/20 rounded-lg">
+                            <AlertTriangle className="w-6 h-6 text-amber-400" />
+                        </div>
+                        <div>
+                            <h3 className="text-lg font-semibold text-amber-300">
+                                Document Verification Required
+                            </h3>
+                            <p className="text-sm text-amber-200/80">
+                                Complete your verification to unlock all
+                                features
+                            </p>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-800/50 rounded-lg p-4 mb-6">
+                        <p className="text-sm text-gray-300 mb-3">
+                            Please upload the following documents to complete
+                            your verification:
+                        </p>
+                        <div className="flex flex-col space-y-2 text-sm">
+                            <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4 text-blue-400" />
+                                <span className="text-gray-300">
+                                    Valid Photo ID (Aadhaar, PAN, Driving
+                                    License)
+                                </span>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                                <FileText className="w-4 h-4 text-green-400" />
+                                <span className="text-gray-300">
+                                    Certificate of Practice from Bar Council
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <form onSubmit={handleDocumentUpload} className="space-y-6">
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-amber-300">
+                                    Photo ID Document
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        name="photo_id"
+                                        accept="application/pdf,image/*"
+                                        onChange={(e) =>
+                                            setDocumentForm({
+                                                ...documentForm,
+                                                photo_id: e.target.files[0],
+                                            })
+                                        }
+                                        required
+                                        className="hidden"
+                                        id="photo-id-upload"
+                                    />
+                                    <label
+                                        htmlFor="photo-id-upload"
+                                        className="w-full bg-gray-700/50 hover:bg-gray-700/70 border-2 border-dashed border-gray-600 hover:border-blue-500 text-gray-300 p-6 rounded-lg cursor-pointer transition-all duration-200 flex flex-col items-center justify-center space-y-2 min-h-[120px]"
+                                    >
+                                        <Upload className="w-8 h-8 text-gray-400" />
+                                        <span className="text-sm font-medium">
+                                            {documentForm.photo_id
+                                                ? documentForm.photo_id.name
+                                                : "Choose Photo ID"}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            PDF, JPG, PNG up to 10MB
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <label className="block text-sm font-medium text-amber-300">
+                                    Certificate of Practice
+                                </label>
+                                <div className="relative">
+                                    <input
+                                        type="file"
+                                        name="cop"
+                                        accept="application/pdf,image/*"
+                                        onChange={(e) =>
+                                            setDocumentForm({
+                                                ...documentForm,
+                                                cop: e.target.files[0],
+                                            })
+                                        }
+                                        required
+                                        className="hidden"
+                                        id="cop-upload"
+                                    />
+                                    <label
+                                        htmlFor="cop-upload"
+                                        className="w-full bg-gray-700/50 hover:bg-gray-700/70 border-2 border-dashed border-gray-600 hover:border-green-500 text-gray-300 p-6 rounded-lg cursor-pointer transition-all duration-200 flex flex-col items-center justify-center space-y-2 min-h-[120px]"
+                                    >
+                                        <Upload className="w-8 h-8 text-gray-400" />
+                                        <span className="text-sm font-medium">
+                                            {documentForm.cop
+                                                ? documentForm.cop.name
+                                                : "Choose Certificate"}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                            PDF, JPG, PNG up to 10MB
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-4 border-t border-gray-700/50">
+                            <div className="text-xs text-gray-400">
+                                All documents will be securely encrypted and
+                                reviewed within 24-48 hours
+                            </div>
+                            <button
+                                type="submit"
+                                disabled={
+                                    !documentForm.photo_id || !documentForm.cop
+                                }
+                                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg text-sm font-medium transition-all duration-200 flex items-center space-x-2 shadow-lg"
+                            >
+                                <Upload className="w-4 h-4" />
+                                <span>Upload Documents</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            )}
         </div>
     );
 };
