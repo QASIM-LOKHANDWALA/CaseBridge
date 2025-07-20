@@ -133,8 +133,6 @@ const LawyerHome = () => {
                         handleClientRequest={handleClientRequest}
                     />
                 );
-            case "messages":
-                return null;
             default:
                 return null;
         }
@@ -273,18 +271,6 @@ const LawyerHome = () => {
                             </button>
 
                             <button
-                                onClick={() => setActiveTab("appointments")}
-                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                                    activeTab === "dashboard"
-                                        ? "bg-blue-600 text-white"
-                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
-                                }`}
-                            >
-                                <Home className="w-5 h-5" />
-                                <span>Appointments</span>
-                            </button>
-
-                            <button
                                 onClick={() => setActiveTab("cases")}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                                     activeTab === "cases"
@@ -309,19 +295,19 @@ const LawyerHome = () => {
                             </button>
 
                             <button
-                                onClick={() => setActiveTab("calendar")}
+                                onClick={() => setActiveTab("appointments")}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                                    activeTab === "calendar"
+                                    activeTab === "appointments"
                                         ? "bg-blue-600 text-white"
                                         : "text-gray-400 hover:text-white hover:bg-gray-700"
                                 }`}
                             >
                                 <Calendar className="w-5 h-5" />
-                                <span>Calendar</span>
+                                <span>Appointments</span>
                             </button>
 
                             <button
-                                onClick={() => setActiveTab("messages")}
+                                onClick={() => navigate("/chat")}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
                                     activeTab === "messages"
                                         ? "bg-blue-600 text-white"

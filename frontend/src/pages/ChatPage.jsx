@@ -9,9 +9,11 @@ import {
     Phone,
     Video,
     MoreVertical,
+    Home,
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import ClientNavbar from "../components/clientHome/ClientNavbar";
+import { Link } from "react-router-dom";
 
 const ChatPage = () => {
     const [contacts, setContacts] = useState([]);
@@ -103,13 +105,23 @@ const ChatPage = () => {
     return (
         <>
             {user.role === "general" && <ClientNavbar />}
-            <div className="flex h-screen bg-gray-900 pt-16">
+            <div
+                className={`flex h-screen bg-gray-900 ${
+                    user.role === "general" ? "pt-16" : ""
+                }`}
+            >
                 <div className="w-1/3 bg-gray-800 border-r border-gray-700 flex flex-col">
                     <div className="p-6 border-b border-gray-700">
-                        <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
-                            <MessageCircle className="w-5 h-5 text-blue-400" />
-                            <span>Messages</span>
-                        </h2>
+                        <div className="flex items-center justify-between">
+                            <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                                <MessageCircle className="w-5 h-5 text-blue-400" />
+                                <span>Messages</span>
+                            </h2>
+
+                            <Link to="/home">
+                                <Home className="w-5 h-5 text-blue-400 mb-4" />
+                            </Link>
+                        </div>
 
                         <div className="relative">
                             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
