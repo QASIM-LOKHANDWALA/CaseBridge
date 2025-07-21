@@ -10,6 +10,5 @@ class Message(models.Model):
     sender = models.ForeignKey(User, on_delete=models.CASCADE)
     text = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
-
     class Meta:
         ordering = ['timestamp']
