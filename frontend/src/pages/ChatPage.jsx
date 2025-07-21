@@ -63,23 +63,6 @@ const ChatPage = () => {
         setMessages(res.data);
     };
 
-    const sendMessage = async () => {
-        if (!newText.trim()) return;
-        const res = await axios.post(
-            `http://127.0.0.1:8000/api/chat/conversations/${conversation.id}/send/`,
-            {
-                text: newText,
-            },
-            {
-                headers: {
-                    Authorization: `Token ${token}`,
-                },
-            }
-        );
-        setMessages((prev) => [...prev, res.data]);
-        setNewText("");
-    };
-
     const handleKeyPress = (e) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.preventDefault();
@@ -95,11 +78,70 @@ const ChatPage = () => {
             contact.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const sendMessage = async () => {
+        if (!newText.trim()) return;
+
+        const url = conversation?.isBot
+            ? `http://127.0.0.1:8000/api/chat/conversations/${conversation.id}/legal-bot/`
+            : `http://127.0.0.1:8000/api/chat/conversations/${conversation.id}/send/`;
+
+        try {
+            const res = await axios.post(
+                url,
+                { text: newText },
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (conversation?.isBot) {
+                setMessages((prev) => [
+                    ...prev,
+                    res.data.user_message,
+                    res.data.bot_reply,
+                ]);
+            } else {
+                setMessages((prev) => [...prev, res.data]);
+            }
+
+            setNewText("");
+        } catch (err) {
+            console.error("Message failed", err);
+        }
+    };
+
     const formatTime = (timestamp) => {
         return new Date(timestamp).toLocaleTimeString("en-US", {
             hour: "2-digit",
             minute: "2-digit",
         });
+    };
+
+    const openBotConversation = async () => {
+        try {
+            const res = await axios.post(
+                "http://127.0.0.1:8000/api/chat/bot/init/",
+                {},
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            const botInfo = {
+                user_id: -1,
+                full_name: "Legal Bot",
+                email: "legalbot@casebridge.com",
+                isBot: true,
+            };
+            setConversation({ id: res.data.conversation_id, ...botInfo });
+            setMessages([]);
+            fetchMessages(res.data.conversation_id);
+        } catch (err) {
+            console.error("Bot init failed", err);
+        }
     };
 
     return (
@@ -136,6 +178,30 @@ const ChatPage = () => {
                     </div>
 
                     <div className="flex-1 overflow-y-auto">
+                        {/* Pinned Bot */}
+                        <button
+                            className={`w-full text-left p-4 border-b border-gray-700 hover:bg-gray-700 transition-colors ${
+                                conversation?.isBot
+                                    ? "bg-gray-700 border-l-4 border-l-blue-500"
+                                    : ""
+                            }`}
+                            onClick={openBotConversation}
+                        >
+                            <div className="flex items-center space-x-3">
+                                <div className="w-12 h-12 bg-blue-500 rounded-full flex items-center justify-center overflow-hidden">
+                                    <User className="w-6 h-6 text-white" />
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3 className="font-medium text-white truncate">
+                                        Legal Bot
+                                    </h3>
+                                    <p className="text-sm text-gray-400 truncate">
+                                        AI Legal Assistant
+                                    </p>
+                                </div>
+                            </div>
+                        </button>
+
                         {filteredContacts.length === 0 ? (
                             <div className="p-6 text-center text-gray-400">
                                 <User className="w-12 h-12 mx-auto mb-3 opacity-50" />
