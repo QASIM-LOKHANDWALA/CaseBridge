@@ -1,10 +1,11 @@
 from django.http import Http404
+from django.db.models import Avg
 from rest_framework.generics import ListAPIView
 from rest_framework.views import APIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
-from .models import LawyerProfile, LegalCase, LawyerDocuments
+from .models import LawyerProfile, LegalCase, LawyerDocuments, LawyerRating
 from users.models import User
 from appointments.models import CaseAppointment
 from clients.models import GeneralUserProfile
@@ -15,6 +16,11 @@ from rest_framework import status
 from django.utils import timezone
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import CaseDocumentSerializer
+
+def update_lawyer_rating(lawyer):
+    avg_rating = LawyerRating.objects.filter(lawyer=lawyer).aggregate(avg=Avg('rating'))['avg'] or 0
+    lawyer.rating = round(avg_rating, 1)
+    lawyer.save()
 
 
 class LawyerListView(ListAPIView):
@@ -232,3 +238,45 @@ class LawyerDocumentUploadView(APIView):
                 return Response({"message":"Documents Uploaded For Verification."}, status=status.HTTP_201_CREATED)
 
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class RateLawyerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+
+        try:
+            general_profile = user.general_profile
+        except GeneralUserProfile.DoesNotExist:
+            return Response({"error": "Only general users can rate lawyers."}, status=status.HTTP_403_FORBIDDEN)
+
+        lawyer_id = request.data.get('lawyer_id')
+        rating = request.data.get('rating')
+
+        if lawyer_id is None or rating is None:
+            return Response({"error": "lawyer_id and rating are required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            lawyer_profile = LawyerProfile.objects.get(id=lawyer_id)
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "Lawyer not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            rating = int(rating)
+            if rating < 0 or rating > 5:
+                raise ValueError()
+        except ValueError:
+            return Response({"error": "Rating must be an integer between 0 and 5."}, status=status.HTTP_400_BAD_REQUEST)
+
+        rating_obj, created = LawyerRating.objects.update_or_create(
+            user=general_profile,
+            lawyer=lawyer_profile,
+            defaults={'rating': rating}
+        )
+
+        update_lawyer_rating(lawyer_profile)
+
+        return Response(
+            {"message": "Rating submitted successfully.", "new_rating": lawyer_profile.rating},
+            status=status.HTTP_200_OK
+        )

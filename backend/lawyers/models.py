@@ -43,6 +43,22 @@ class LawyerDocuments(models.Model):
     uploaded = models.BooleanField(default=False)
     photo_id = models.FileField(upload_to="photo_id/", blank=True, null=True)
     cop = models.FileField(upload_to="cop/", blank=True, null=True)
+    
+class LawyerRating(models.Model):
+    RATING_CHOICES = [(i, str(i)) for i in range(6)]
+
+    user = models.ForeignKey(GeneralUserProfile, on_delete=models.CASCADE, related_name='given_ratings')
+    lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='received_ratings')
+    rating = models.IntegerField(choices=RATING_CHOICES)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('user', 'lawyer')
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f'{self.user.full_name} rated {self.lawyer.full_name}: {self.rating}'
+
 
 class LegalCase(models.Model):
     STATUS_CHOICES = (

@@ -9,4 +9,5 @@ urlpatterns = [
     path('cases/', views.LawyerCasesView.as_view(), name='lawyer-cases'),
     path('cases/<int:case_id>/upload-document/', views.UploadCaseDocumentView.as_view(), name='upload-case-document'),
     path('documents/', views.LawyerDocumentUploadView.as_view(), name='lawyer-document-upload'),
+    path('rate/', views.RateLawyerView.as_view(), name='rate-lawyer'),
 ]
