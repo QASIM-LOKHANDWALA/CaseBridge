@@ -3,7 +3,7 @@ from langchain_ollama import OllamaLLM
 from langchain_core.prompts import ChatPromptTemplate 
 from langchain_community.vectorstores import FAISS
 from langchain.chains.combine_documents import create_stuff_documents_chain
-from langchain.chains import create_retrieval_chain
+from langchain.chains.retrieval import create_retrieval_chain
 import os
 
 def get_legal_answer(user_query):
@@ -16,6 +16,7 @@ def get_legal_answer(user_query):
 
     prompt = ChatPromptTemplate.from_template("""
         You are a legal expert. Answer the question based on the provided context.
+        If the context is not relevant generate the ansswer on your own.
         Think step by step and provide a detailed answer.
         <context>
         {context}

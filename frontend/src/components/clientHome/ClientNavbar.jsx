@@ -5,6 +5,7 @@ import useAuth from "../../hooks/useAuth";
 
 const ClientNavbar = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [showUserMenu, setShowUserMenu] = useState(false);
     const { user, logout } = useAuth();
     const location = useLocation();
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ const ClientNavbar = () => {
 
     const navItems = [
         {
-            name: "Home",
+            name: "Dashboard",
             path: "/home",
             icon: Home,
         },
@@ -62,35 +63,44 @@ const ClientNavbar = () => {
                     </div>
 
                     <div className="hidden md:flex items-center space-x-4">
-                        <div className="flex items-center space-x-3 px-3 py-2 bg-gray-800 rounded-lg">
-                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
-                                {user?.profile_picture ? (
-                                    <img
-                                        src={user.profile_picture}
-                                        alt={user.full_name || "User"}
-                                        className="w-full h-full object-cover"
-                                    />
-                                ) : (
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowUserMenu(!showUserMenu)}
+                                className="flex items-center space-x-3 p-2 hover:bg-gray-800 rounded-lg transition-colors"
+                            >
+                                <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center overflow-hidden">
                                     <User className="w-4 h-4 text-gray-400" />
-                                )}
-                            </div>
-                            <div className="hidden lg:block">
-                                <p className="text-sm font-medium text-white">
-                                    {user?.full_name || "Client"}
-                                </p>
-                                <p className="text-xs text-gray-400">
-                                    {user?.email}
-                                </p>
-                            </div>
-                        </div>
+                                </div>
+                                <div className="text-left">
+                                    <p className="text-sm font-medium text-white">
+                                        {user?.general_profile.full_name ||
+                                            "Client"}
+                                    </p>
+                                </div>
+                            </button>
 
-                        <button
-                            onClick={handleLogout}
-                            className="flex items-center space-x-2 px-4 py-2 text-gray-300 hover:text-red-400 hover:bg-gray-800 rounded-lg font-medium transition-colors"
-                        >
-                            <LogOut className="w-4 h-4" />
-                            <span>Logout</span>
-                        </button>
+                            {showUserMenu && (
+                                <div className="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700 rounded-lg shadow-lg">
+                                    <div className="p-2">
+                                        <div className="px-3 py-2 border-b border-gray-700">
+                                            <p className="text-sm font-medium text-white">
+                                                {user?.full_name || "Client"}
+                                            </p>
+                                            <p className="text-xs text-gray-400">
+                                                {user?.email}
+                                            </p>
+                                        </div>
+                                        <button
+                                            onClick={handleLogout}
+                                            className="w-full flex items-center space-x-2 px-3 py-2 mt-2 text-gray-300 hover:text-red-400 hover:bg-gray-700 rounded-md font-medium transition-colors"
+                                        >
+                                            <LogOut className="w-4 h-4" />
+                                            <span>Logout</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     <button
@@ -120,13 +130,18 @@ const ClientNavbar = () => {
                                         <User className="w-5 h-5 text-gray-400" />
                                     )}
                                 </div>
-                                <div>
+                                <div className="flex-1">
                                     <p className="font-medium text-white">
                                         {user?.full_name || "Client"}
                                     </p>
                                     <p className="text-sm text-gray-400">
                                         {user?.email}
                                     </p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                    <button className="text-gray-400 hover:text-white p-1">
+                                        <Bell className="w-4 h-4" />
+                                    </button>
                                 </div>
                             </div>
 
@@ -151,7 +166,7 @@ const ClientNavbar = () => {
 
                             <button
                                 onClick={handleLogout}
-                                className="flex items-center space-x-3 px-3 py-3 text-gray-300 hover:text-red-400 hover:bg-gray-800 rounded-lg font-medium transition-colors"
+                                className="flex items-center space-x-3 px-3 py-3 text-gray-300 hover:text-red-400 hover:bg-gray-800 rounded-lg font-medium transition-colors mt-2"
                             >
                                 <LogOut className="w-5 h-5" />
                                 <span>Logout</span>
