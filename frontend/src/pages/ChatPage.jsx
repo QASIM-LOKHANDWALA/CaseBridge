@@ -62,6 +62,16 @@ const ChatPage = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     };
 
+    useEffect(() => {
+        console.log(conversation);
+    }, [conversation]);
+
+    useEffect(() => {
+        return () => {
+            clearPollingInterval();
+        };
+    }, []);
+
     const openConversation = async (contact) => {
         try {
             const res = await axios.post(
@@ -80,6 +90,7 @@ const ChatPage = () => {
             setIsBotTyping(false);
             setShowMobileChat(true);
             fetchMessages(res.data.conversation_id);
+            startPollingMessages(res.data.conversation_id);
         } catch (error) {
             console.error("Failed to start conversation:", error);
         }
@@ -99,6 +110,27 @@ const ChatPage = () => {
         } catch (error) {
             console.error("Failed to fetch messages:", error);
         }
+    };
+
+    const pollingIntervalRef = useRef(null);
+
+    const clearPollingInterval = () => {
+        if (pollingIntervalRef.current) {
+            console.log("Clearing previous polling interval");
+            clearInterval(pollingIntervalRef.current);
+            pollingIntervalRef.current = null;
+        }
+    };
+
+    const startPollingMessages = (conversationId) => {
+        console.log("Started Polling for conversation", conversationId);
+
+        clearPollingInterval();
+
+        pollingIntervalRef.current = setInterval(() => {
+            console.log("Updating Conversations");
+            fetchMessages(conversationId);
+        }, 5000);
     };
 
     const handleKeyPress = (e) => {
@@ -211,7 +243,7 @@ const ChatPage = () => {
                 }
             );
             const botInfo = {
-                user_id: -1,
+                user_id: 9,
                 full_name: "Legal Assistant",
                 email: "legalbot@casebridge.com",
                 isBot: true,
@@ -221,6 +253,7 @@ const ChatPage = () => {
             setIsBotTyping(false);
             setShowMobileChat(true);
             fetchMessages(res.data.conversation_id);
+            startPollingMessages(res.data.conversation_id);
         } catch (err) {
             console.error("Bot init failed", err);
         }
@@ -243,9 +276,10 @@ const ChatPage = () => {
                     ? "bg-gray-700 border-r-4 border-r-blue-500"
                     : ""
             }`}
-            onClick={() =>
-                isBot ? openBotConversation() : openConversation(contact)
-            }
+            onClick={() => {
+                isBot ? openBotConversation() : openConversation(contact);
+                console.log(isBot, contact);
+            }}
         >
             <div className="flex items-center space-x-3">
                 <div className="relative">
@@ -469,20 +503,6 @@ const ChatPage = () => {
                                             </p>
                                         </div>
                                     </div>
-
-                                    {!conversation.isBot && (
-                                        <div className="flex items-center space-x-2">
-                                            <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
-                                                <Phone className="w-5 h-5" />
-                                            </button>
-                                            <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
-                                                <Video className="w-5 h-5" />
-                                            </button>
-                                            <button className="p-2 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors">
-                                                <MoreVertical className="w-5 h-5" />
-                                            </button>
-                                        </div>
-                                    )}
                                 </div>
                             </div>
 
