@@ -10,7 +10,27 @@ import {
     Clock,
 } from "lucide-react";
 
-const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
+const getStatusColor = (status) => {
+    switch (status) {
+        case "pending":
+            return "bg-yellow-500 text-yellow-100";
+        case "completed":
+            return "bg-green-500 text-green-100";
+        case "refunded":
+            return "bg-blue-500 text-blue-100";
+        case "failed":
+            return "bg-red-500 text-red-100";
+        default:
+            return "bg-gray-600 text-gray-200";
+    }
+};
+
+const LawyerCard = ({
+    lawyer,
+    getSpecializationLabel,
+    handleSendRequest,
+    hireStatus,
+}) => {
     return (
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-600/50 transition-all duration-300 hover:transform hover:scale-105 group">
             <div className="flex items-start justify-between mb-4">
@@ -68,10 +88,10 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
                         <Award className="w-4 h-4 text-green-400" />
                         <div>
                             <div className="text-xs text-gray-400">
-                                Cases Won
+                                Serving Cases
                             </div>
                             <div className="text-sm font-semibold">
-                                {lawyer.lawyer_profile.cases_won}
+                                {lawyer.number_of_cases}
                             </div>
                         </div>
                     </div>
@@ -81,10 +101,10 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
                         <Users className="w-4 h-4 text-blue-400" />
                         <div>
                             <div className="text-xs text-gray-400">
-                                Clients Served
+                                Serving Clients
                             </div>
                             <div className="text-sm font-semibold">
-                                {lawyer.lawyer_profile.clients_served}
+                                {lawyer.number_of_clients}
                             </div>
                         </div>
                     </div>
@@ -92,13 +112,26 @@ const LawyerCard = ({ lawyer, getSpecializationLabel }) => {
             </div>
 
             <div className="flex space-x-2">
-                <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-                    <MessageCircle className="w-4 h-4" />
-                    <span>Consult Now</span>
-                </button>
-                <button className="bg-gray-700 hover:bg-gray-600 text-white py-3 px-4 rounded-lg font-medium transition-colors">
-                    <ArrowRight className="w-4 h-4" />
-                </button>
+                {hireStatus === "none" ? (
+                    <button
+                        onClick={() =>
+                            handleSendRequest(lawyer.lawyer_profile.id)
+                        }
+                        className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2"
+                    >
+                        <MessageCircle className="w-4 h-4" />
+                        <span>Send Request</span>
+                    </button>
+                ) : (
+                    <div
+                        className={`flex-1 py-3 px-4 rounded-lg font-medium text-center text-sm ${getStatusColor(
+                            hireStatus
+                        )}`}
+                    >
+                        {hireStatus.charAt(0).toUpperCase() +
+                            hireStatus.slice(1)}
+                    </div>
+                )}
             </div>
         </div>
     );

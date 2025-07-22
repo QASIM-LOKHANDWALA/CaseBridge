@@ -14,7 +14,6 @@ class Hire(models.Model):
 
     client = models.ForeignKey(GeneralUserProfile, on_delete=models.CASCADE, related_name='hires')
     lawyer = models.ForeignKey(LawyerProfile, on_delete=models.CASCADE, related_name='hires')
-    case_description = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     deposit_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     is_paid = models.BooleanField(default=False)

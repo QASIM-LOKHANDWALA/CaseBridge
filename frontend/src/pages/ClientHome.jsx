@@ -4,6 +4,7 @@ import LawyerCard from "../components/clientHome/LawyerCard";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
 import ClientNavbar from "../components/clientHome/ClientNavbar";
+import toast from "react-hot-toast";
 
 const ClientHome = () => {
     const [searchTerm, setSearchTerm] = useState("");
@@ -12,6 +13,7 @@ const ClientHome = () => {
     const [specializationFilter, setSpecializationFilter] = useState("");
     const [showFilters, setShowFilters] = useState(false);
     const [lawyers, setLawyers] = useState([]);
+    const [requests, setRequests] = useState([]);
     const { token } = useAuth();
 
     const indianCities = [
@@ -80,8 +82,51 @@ const ClientHome = () => {
         }
     };
 
+    const fetchRequest = async () => {
+        try {
+            const response = await axios.get(
+                "http://127.0.0.1:8000/api/hire/client/hire-requests/",
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+            console.log(`Fetch Requests Response : `, response.data);
+
+            if (response.status === 200) {
+                setRequests(response.data);
+            }
+        } catch (error) {
+            console.log("Error fetching requests : ", error);
+        }
+    };
+
+    const handleSendRequest = async (lawyerId) => {
+        try {
+            const response = await axios.post(
+                `http://127.0.0.1:8000/api/hire/lawyer/${lawyerId}/`,
+                {},
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                    },
+                }
+            );
+
+            if (response.status === 201) {
+                toast.success("Request Sent.");
+                const newRequest = response.data;
+                setRequests((prevRequests) => [...prevRequests, newRequest]);
+            }
+        } catch (error) {
+            console.log("Error in sending request : ", error);
+        }
+    };
+
     useEffect(() => {
         fetchLawyers();
+        fetchRequest();
     }, []);
 
     const filteredLawyers = lawyers.filter((lawyer) => {
@@ -264,7 +309,6 @@ const ClientHome = () => {
                 </div>
             </div>
 
-            {/* Main Content Section */}
             <div className="container mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-8">
                     <h2 className="text-2xl font-semibold">
@@ -276,13 +320,23 @@ const ClientHome = () => {
                 </div>
 
                 <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredLawyers.map((lawyer) => (
-                        <LawyerCard
-                            key={lawyer.id}
-                            lawyer={lawyer}
-                            getSpecializationLabel={getSpecializationLabel}
-                        />
-                    ))}
+                    {filteredLawyers.map((lawyer) => {
+                        const hireRequest = requests.find(
+                            (req) => req.lawyer === lawyer.lawyer_profile.id
+                        );
+                        const hireStatus = hireRequest
+                            ? hireRequest.status
+                            : "none";
+                        return (
+                            <LawyerCard
+                                key={lawyer.id}
+                                lawyer={lawyer}
+                                getSpecializationLabel={getSpecializationLabel}
+                                handleSendRequest={handleSendRequest}
+                                hireStatus={hireStatus}
+                            />
+                        );
+                    })}
                 </div>
 
                 {filteredLawyers.length === 0 && (

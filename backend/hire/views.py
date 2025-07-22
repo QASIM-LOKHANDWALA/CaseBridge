@@ -24,18 +24,15 @@ class HireLawyerView(APIView):
 
         lawyer = get_object_or_404(LawyerProfile, id=lawyer_id)
 
-        serializer = HireLawyerSerializer(data=request.data)
-        if serializer.is_valid():
-            hire = Hire.objects.create(
-                client=client_profile,
-                lawyer=lawyer,
-                case_description=serializer.validated_data['case_description'],
-                deposit_amount=500.00,
-                is_paid=True,
-                status='pending'
-            )
-            return Response({'message': 'Hire request sent.', 'hire_id': hire.id}, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        hire = Hire.objects.create(
+            client=client_profile,
+            lawyer=lawyer,
+            deposit_amount=500.00,
+            is_paid=True,
+            status='pending'
+        )
+        serializer = HireLawyerSerializer(hire, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 class RespondToHireRequestView(APIView):
     permission_classes = [IsAuthenticated]
@@ -63,3 +60,19 @@ class RespondToHireRequestView(APIView):
         hire.save()
 
         return Response({'message': f'Hire request {new_status} successfully.'}, status=status.HTTP_200_OK)
+
+class ClientHireRequestsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        print(user)
+
+        try:
+            client_profile = user.general_profile
+        except AttributeError:
+            return Response({"error": "Client profile not found."}, status=400)
+
+        hire_requests = Hire.objects.filter(client=client_profile).order_by('-hired_at')
+        serializer = HireLawyerSerializer(hire_requests, many=True)
+        return Response(serializer.data)

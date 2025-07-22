@@ -4,4 +4,4 @@ from .models import Hire
 class HireLawyerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hire
-        fields = ['case_description']
+        fields = "__all__"
