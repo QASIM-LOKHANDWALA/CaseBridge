@@ -1,66 +1,31 @@
 import React, { useState, useEffect } from "react";
-import { Search, Filter, Shield } from "lucide-react";
+import {
+    Search,
+    Filter,
+    Shield,
+    User,
+    Home,
+    Calendar,
+    MessageCircle,
+    FileText,
+    Bell,
+    LogOut,
+    Users,
+} from "lucide-react";
 import LawyerCard from "../components/clientHome/LawyerCard";
 import axios from "axios";
 import useAuth from "../hooks/useAuth";
-import ClientNavbar from "../components/clientHome/ClientNavbar";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
+import DiscoverLawyers from "../components/clientHome/DiscoverLawyers";
 
 const ClientHome = () => {
-    const [searchTerm, setSearchTerm] = useState("");
-    const [locationFilter, setLocationFilter] = useState("");
-    const [experienceFilter, setExperienceFilter] = useState("");
-    const [specializationFilter, setSpecializationFilter] = useState("");
-    const [showFilters, setShowFilters] = useState(false);
+    const [activeTab, setActiveTab] = useState("home");
+    const [showNotifications, setShowNotifications] = useState(false);
     const [lawyers, setLawyers] = useState([]);
     const [requests, setRequests] = useState([]);
-    const { token } = useAuth();
-
-    const indianCities = [
-        "Mumbai",
-        "Delhi",
-        "Bengaluru",
-        "Hyderabad",
-        "Ahmedabad",
-        "Chennai",
-        "Kolkata",
-        "Pune",
-        "Jaipur",
-        "Surat",
-        "Lucknow",
-        "Kanpur",
-        "Nagpur",
-        "Indore",
-        "Bhopal",
-        "Patna",
-        "Ludhiana",
-        "Agra",
-        "Nashik",
-        "Vadodara",
-        "Faridabad",
-        "Ghaziabad",
-        "Rajkot",
-        "Meerut",
-        "Amritsar",
-        "Varanasi",
-    ];
-
-    const specializations = [
-        { value: "criminal", label: "Criminal Law" },
-        { value: "civil", label: "Civil Law" },
-        { value: "corporate", label: "Corporate Law" },
-        { value: "family", label: "Family Law" },
-        { value: "intellectual_property", label: "Intellectual Property Law" },
-        { value: "general", label: "General Practice" },
-    ];
-
-    const experienceRanges = [
-        { value: "0-2", label: "0-2 years" },
-        { value: "3-5", label: "3-5 years" },
-        { value: "6-10", label: "6-10 years" },
-        { value: "11-15", label: "11-15 years" },
-        { value: "16+", label: "16+ years" },
-    ];
+    const { user, token, logout } = useAuth();
+    const navigate = useNavigate();
 
     const fetchLawyers = async () => {
         try {
@@ -102,25 +67,16 @@ const ClientHome = () => {
         }
     };
 
-    const handleSendRequest = async (lawyerId) => {
+    const handleLogout = async (e) => {
+        e.preventDefault();
         try {
-            const response = await axios.post(
-                `http://127.0.0.1:8000/api/hire/lawyer/${lawyerId}/`,
-                {},
-                {
-                    headers: {
-                        Authorization: `Token ${token}`,
-                    },
-                }
-            );
-
-            if (response.status === 201) {
-                toast.success("Request Sent.");
-                const newRequest = response.data;
-                setRequests((prevRequests) => [...prevRequests, newRequest]);
-            }
-        } catch (error) {
-            console.log("Error in sending request : ", error);
+            const data = await logout();
+            console.log(data);
+            toast.success("Logout Successful!");
+            navigate("/");
+        } catch (err) {
+            console.error("Auth error:", err);
+            toast.error(`Logout failed. ${err}`);
         }
     };
 
@@ -129,236 +85,321 @@ const ClientHome = () => {
         fetchRequest();
     }, []);
 
-    const filteredLawyers = lawyers.filter((lawyer) => {
-        const matchesSearch =
-            lawyer.lawyer_profile.full_name
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase()) ||
-            lawyer.lawyer_profile.bio
-                .toLowerCase()
-                .includes(searchTerm.toLowerCase());
-        const matchesLocation =
-            !locationFilter ||
-            lawyer.lawyer_profile.location === locationFilter;
-        const matchesExperience =
-            !experienceFilter ||
-            lawyer.lawyer_profile.experience_years === experienceFilter;
-        const matchesSpecialization =
-            !specializationFilter ||
-            lawyer.lawyer_profile.specialization === specializationFilter;
-
-        return (
-            matchesSearch &&
-            matchesLocation &&
-            matchesExperience &&
-            matchesSpecialization
-        );
-    });
+    const specializations = [
+        { value: "criminal", label: "Criminal Law" },
+        { value: "civil", label: "Civil Law" },
+        { value: "corporate", label: "Corporate Law" },
+        { value: "family", label: "Family Law" },
+        { value: "intellectual_property", label: "Intellectual Property Law" },
+        { value: "general", label: "General Practice" },
+    ];
 
     const getSpecializationLabel = (value) => {
         const spec = specializations.find((s) => s.value === value);
         return spec ? spec.label : value;
     };
 
-    const clearFilters = () => {
-        setLocationFilter("");
-        setExperienceFilter("");
-        setSpecializationFilter("");
-        setSearchTerm("");
-    };
+    const notifications = [
+        {
+            id: 1,
+            type: "request",
+            title: "Request Accepted",
+            message: "Adv. Sharma accepted your hire request",
+            time: "2 hours ago",
+            read: false,
+        },
+        {
+            id: 2,
+            type: "appointment",
+            title: "Appointment Scheduled",
+            message: "Meeting scheduled for tomorrow at 2:00 PM",
+            time: "4 hours ago",
+            read: false,
+        },
+        {
+            id: 3,
+            type: "document",
+            title: "Document Request",
+            message: "Your lawyer requested additional documents",
+            time: "1 day ago",
+            read: true,
+        },
+    ];
 
-    const activeFiltersCount = [
-        locationFilter,
-        experienceFilter,
-        specializationFilter,
-    ].filter(Boolean).length;
-
-    return (
-        <div className="min-h-screen bg-gray-900 text-white">
-            <ClientNavbar />
-
-            <div className="pt-20 bg-gray-800 border-b border-gray-700">
-                <div className="container mx-auto px-4 py-6">
-                    <div className="flex items-center justify-between mb-6">
-                        <h1 className="text-3xl font-bold">
-                            Find Your Perfect{" "}
-                            <span className="text-blue-400">Legal Partner</span>
-                        </h1>
-                        <div className="flex items-center space-x-2 bg-blue-600/20 border border-blue-600/30 rounded-full px-4 py-2 text-sm text-blue-300">
-                            <Shield className="w-4 h-4" />
-                            <span>
-                                {filteredLawyers.length} Verified Lawyers
-                            </span>
-                        </div>
-                    </div>
-
-                    <div className="flex flex-col lg:flex-row gap-4">
-                        <div className="flex-1 relative">
-                            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-                            <input
-                                type="text"
-                                placeholder="Search lawyers by name or expertise..."
-                                className="w-full pl-10 pr-4 py-3 bg-gray-700 border border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                            />
-                        </div>
-
-                        <button
-                            onClick={() => setShowFilters(!showFilters)}
-                            className="flex items-center space-x-2 bg-gray-700 hover:bg-gray-600 px-4 py-3 rounded-lg transition-colors border border-gray-600"
-                        >
-                            <Filter className="w-5 h-5" />
-                            <span>Filters</span>
-                            {activeFiltersCount > 0 && (
-                                <span className="bg-blue-600 text-white text-xs rounded-full px-2 py-1">
-                                    {activeFiltersCount}
-                                </span>
-                            )}
-                        </button>
-                    </div>
-
-                    {showFilters && (
-                        <div className="mt-4 p-4 bg-gray-700 rounded-lg border border-gray-600">
-                            <div className="grid md:grid-cols-3 gap-4">
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Location
-                                    </label>
-                                    <select
-                                        value={locationFilter}
-                                        onChange={(e) =>
-                                            setLocationFilter(e.target.value)
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">All Locations</option>
-                                        {indianCities.map((city) => (
-                                            <option key={city} value={city}>
-                                                {city}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Experience
-                                    </label>
-                                    <select
-                                        value={experienceFilter}
-                                        onChange={(e) =>
-                                            setExperienceFilter(e.target.value)
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">
-                                            All Experience Levels
-                                        </option>
-                                        {experienceRanges.map((range) => (
-                                            <option
-                                                key={range.value}
-                                                value={range.value}
-                                            >
-                                                {range.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-medium mb-2">
-                                        Specialization
-                                    </label>
-                                    <select
-                                        value={specializationFilter}
-                                        onChange={(e) =>
-                                            setSpecializationFilter(
-                                                e.target.value
-                                            )
-                                        }
-                                        className="w-full px-3 py-2 bg-gray-600 border border-gray-500 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    >
-                                        <option value="">
-                                            All Specializations
-                                        </option>
-                                        {specializations.map((spec) => (
-                                            <option
-                                                key={spec.value}
-                                                value={spec.value}
-                                            >
-                                                {spec.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </div>
-
-                            {activeFiltersCount > 0 && (
-                                <div className="mt-4 flex justify-end">
-                                    <button
-                                        onClick={clearFilters}
-                                        className="text-blue-400 hover:text-blue-300 text-sm"
-                                    >
-                                        Clear all filters
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    )}
-                </div>
+    const renderMyLawyers = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">
+                    My Lawyers
+                </h2>
             </div>
-
-            <div className="container mx-auto px-4 py-8">
-                <div className="flex items-center justify-between mb-8">
-                    <h2 className="text-2xl font-semibold">
-                        {filteredLawyers.length} Lawyers Found
-                    </h2>
-                    <div className="text-sm text-gray-400">
-                        Showing verified legal professionals
-                    </div>
-                </div>
-
-                <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {filteredLawyers.map((lawyer) => {
-                        const hireRequest = requests.find(
-                            (req) => req.lawyer === lawyer.lawyer_profile.id
+            <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {requests
+                    .filter((req) => req.status === "accepted")
+                    .map((request) => {
+                        const lawyer = lawyers.find(
+                            (l) => l.lawyer_profile.id === request.lawyer
                         );
-                        const hireStatus = hireRequest
-                            ? hireRequest.status
-                            : "none";
+                        if (!lawyer) return null;
                         return (
                             <LawyerCard
                                 key={lawyer.id}
                                 lawyer={lawyer}
                                 getSpecializationLabel={getSpecializationLabel}
-                                handleSendRequest={handleSendRequest}
-                                hireStatus={hireStatus}
+                                handleSendRequest={null}
+                                hireStatus={request.status}
                             />
                         );
                     })}
+            </div>
+            {requests.filter((req) => req.status === "accepted").length ===
+                0 && (
+                <div className="text-center py-12">
+                    <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                    <h3 className="text-xl font-semibold mb-2 text-white">
+                        No hired lawyers yet
+                    </h3>
+                    <p className="text-gray-400">
+                        Start by finding and hiring lawyers from the home tab.
+                    </p>
                 </div>
+            )}
+        </div>
+    );
 
-                {filteredLawyers.length === 0 && (
-                    <div className="text-center py-12">
-                        <div className="w-16 h-16 bg-gray-700 rounded-full flex items-center justify-center mx-auto mb-4">
-                            <Search className="w-8 h-8 text-gray-400" />
+    const renderAppointments = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">
+                    My Appointments
+                </h2>
+                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
+                    Schedule New
+                </button>
+            </div>
+            <div className="text-center py-12">
+                <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                    No appointments scheduled
+                </h3>
+                <p className="text-gray-400">
+                    Your upcoming appointments will appear here.
+                </p>
+            </div>
+        </div>
+    );
+
+    const renderCases = () => (
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-2xl font-semibold text-white">My Cases</h2>
+            </div>
+            <div className="text-center py-12">
+                <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2 text-white">
+                    No cases yet
+                </h3>
+                <p className="text-gray-400">
+                    Your active cases will be displayed here.
+                </p>
+            </div>
+        </div>
+    );
+
+    const renderContent = () => {
+        switch (activeTab) {
+            case "home":
+                return (
+                    <DiscoverLawyers
+                        lawyers={lawyers}
+                        requests={requests}
+                        setRequests={setRequests}
+                        specializations={specializations}
+                        getSpecializationLabel={getSpecializationLabel}
+                    />
+                );
+            case "my-lawyers":
+                return renderMyLawyers();
+            case "appointments":
+                return renderAppointments();
+            case "cases":
+                return renderCases();
+            default:
+                return (
+                    <DiscoverLawyers
+                        lawyers={lawyers}
+                        requests={requests}
+                        setRequests={setRequests}
+                        specializations={specializations}
+                        getSpecializationLabel={getSpecializationLabel}
+                    />
+                );
+        }
+    };
+
+    return (
+        <div className="h-screen flex flex-col bg-gray-900">
+            <header className="bg-gray-800 border-b border-gray-700 px-4 py-3">
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-4">
+                        <div className="text-2xl font-bold text-white">
+                            Case<span className="text-blue-400">Bridge</span>
                         </div>
-                        <h3 className="text-xl font-semibold mb-2">
-                            No lawyers found
-                        </h3>
-                        <p className="text-gray-400 mb-4">
-                            Try adjusting your search criteria or filters to
-                            find more results.
-                        </p>
-                        <button
-                            onClick={clearFilters}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                        >
-                            Clear All Filters
-                        </button>
+                        <div className="hidden md:block text-sm text-gray-400">
+                            Client Dashboard
+                        </div>
                     </div>
-                )}
+
+                    <div className="flex items-center space-x-4">
+                        <div className="relative">
+                            <button
+                                onClick={() =>
+                                    setShowNotifications(!showNotifications)
+                                }
+                                className="text-gray-400 hover:text-white p-2 relative"
+                            >
+                                <Bell className="w-5 h-5" />
+                                <span className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full text-xs flex items-center justify-center text-white">
+                                    {
+                                        notifications.filter((n) => !n.read)
+                                            .length
+                                    }
+                                </span>
+                            </button>
+
+                            {showNotifications && (
+                                <div className="absolute right-0 mt-2 w-80 bg-gray-800 border border-gray-700 rounded-lg shadow-lg z-50">
+                                    <div className="p-4 border-b border-gray-700">
+                                        <h4 className="font-semibold text-white">
+                                            Notifications
+                                        </h4>
+                                    </div>
+                                    <div className="max-h-64 overflow-y-auto">
+                                        {notifications.map((notification) => (
+                                            <div
+                                                key={notification.id}
+                                                className="p-3 border-b border-gray-700 hover:bg-gray-700"
+                                            >
+                                                <div className="flex items-start space-x-3">
+                                                    <div
+                                                        className={`w-2 h-2 rounded-full mt-2 ${
+                                                            notification.read
+                                                                ? "bg-gray-400"
+                                                                : "bg-blue-400"
+                                                        }`}
+                                                    ></div>
+                                                    <div className="flex-1">
+                                                        <p className="text-sm font-medium text-white">
+                                                            {notification.title}
+                                                        </p>
+                                                        <p className="text-xs text-gray-400">
+                                                            {
+                                                                notification.message
+                                                            }
+                                                        </p>
+                                                        <p className="text-xs text-gray-500 mt-1">
+                                                            {notification.time}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="flex items-center space-x-3">
+                            <div className="w-8 h-8 bg-gray-700 rounded-full flex items-center justify-center">
+                                <User className="w-4 h-4 text-gray-400" />
+                            </div>
+                            <div className="hidden md:block">
+                                <p className="text-sm font-medium text-white">
+                                    {user?.general_profile?.full_name}
+                                </p>
+                                <p className="text-xs text-gray-400">Client</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </header>
+
+            <div className="flex flex-1 overflow-hidden">
+                <nav className="w-64 bg-gray-800 border-r border-gray-700 overflow-y-auto">
+                    <div className="p-4">
+                        <div className="space-y-2">
+                            <button
+                                onClick={() => setActiveTab("home")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "home"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Home className="w-5 h-5" />
+                                <span>Find Lawyers</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("my-lawyers")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "my-lawyers"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Users className="w-5 h-5" />
+                                <span>My Lawyers</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("cases")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "cases"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <FileText className="w-5 h-5" />
+                                <span>My Cases</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("appointments")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "appointments"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Calendar className="w-5 h-5" />
+                                <span>Appointments</span>
+                            </button>
+
+                            <button
+                                onClick={() => navigate("/chat")}
+                                className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                            >
+                                <MessageCircle className="w-5 h-5" />
+                                <span>Messages</span>
+                            </button>
+
+                            <div className="border-t border-gray-700 pt-4 mt-4">
+                                <button
+                                    onClick={handleLogout}
+                                    className="w-full flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-400 hover:text-white hover:bg-gray-700 transition-colors"
+                                >
+                                    <LogOut className="w-5 h-5" />
+                                    <span>Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+
+                <main className="flex-1 overflow-y-auto p-6">
+                    {renderContent()}
+                </main>
             </div>
         </div>
     );

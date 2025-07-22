@@ -60,7 +60,7 @@ const LawyerCard = ({
                 <div className="text-right">
                     <div className="flex items-center space-x-1">
                         <Star className="w-4 h-4 text-yellow-400 fill-current" />
-                        <span className="text-sm font-medium">
+                        <span className="text-sm font-medium text-white">
                             {lawyer.lawyer_profile.rating}
                         </span>
                     </div>
@@ -90,7 +90,7 @@ const LawyerCard = ({
                             <div className="text-xs text-gray-400">
                                 Serving Cases
                             </div>
-                            <div className="text-sm font-semibold">
+                            <div className="text-sm font-semibold text-white">
                                 {lawyer.number_of_cases}
                             </div>
                         </div>
@@ -103,7 +103,7 @@ const LawyerCard = ({
                             <div className="text-xs text-gray-400">
                                 Serving Clients
                             </div>
-                            <div className="text-sm font-semibold">
+                            <div className="text-sm font-semibold text-white">
                                 {lawyer.number_of_clients}
                             </div>
                         </div>

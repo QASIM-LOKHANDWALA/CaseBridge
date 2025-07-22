@@ -19,7 +19,6 @@ import {
     Users,
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
-import ClientNavbar from "../components/clientHome/ClientNavbar";
 import { Link } from "react-router-dom";
 
 const ChatPage = () => {
@@ -386,12 +385,7 @@ const ChatPage = () => {
 
     return (
         <>
-            {user.role === "general" && <ClientNavbar />}
-            <div
-                className={`flex h-screen bg-gray-900 ${
-                    user.role === "general" ? "pt-20" : ""
-                }`}
-            >
+            <div className={`flex h-screen bg-gray-900 `}>
                 <div
                     className={`${
                         showMobileChat ? "hidden" : "flex"
