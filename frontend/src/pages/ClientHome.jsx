@@ -11,6 +11,7 @@ import {
     Bell,
     LogOut,
     Users,
+    X,
 } from "lucide-react";
 import LawyerCard from "../components/clientHome/LawyerCard";
 import axios from "axios";
@@ -18,6 +19,7 @@ import useAuth from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import DiscoverLawyers from "../components/clientHome/DiscoverLawyers";
+import Appointments from "../components/clientHome/Appointments";
 
 const ClientHome = () => {
     const [activeTab, setActiveTab] = useState("home");
@@ -167,28 +169,6 @@ const ClientHome = () => {
         </div>
     );
 
-    const renderAppointments = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-white">
-                    My Appointments
-                </h2>
-                <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors">
-                    Schedule New
-                </button>
-            </div>
-            <div className="text-center py-12">
-                <Calendar className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-xl font-semibold mb-2 text-white">
-                    No appointments scheduled
-                </h3>
-                <p className="text-gray-400">
-                    Your upcoming appointments will appear here.
-                </p>
-            </div>
-        </div>
-    );
-
     const renderCases = () => (
         <div className="space-y-6">
             <div className="flex items-center justify-between">
@@ -221,7 +201,7 @@ const ClientHome = () => {
             case "my-lawyers":
                 return renderMyLawyers();
             case "appointments":
-                return renderAppointments();
+                return <Appointments />;
             case "cases":
                 return renderCases();
             default:
