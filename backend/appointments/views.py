@@ -57,6 +57,20 @@ class LawyerAppointmentsView(APIView):
         appointments = CaseAppointment.objects.filter(lawyer=lawyer_profile).order_by('-appointment_date')
         serializer = CaseAppointmentSerializer(appointments, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
+    
+class ClientAppointmentsView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        try:
+            user_profile = GeneralUserProfile.objects.get(user=request.user)
+        except GeneralUserProfile.DoesNotExist:
+            return Response({"error": "Only clients can view their appointments."}, status=status.HTTP_403_FORBIDDEN)
+
+        appointments = CaseAppointment.objects.filter(user=user_profile).order_by('-appointment_date')
+        serializer = CaseAppointmentSerializer(appointments, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 
 class UpdateAppointmentStatusView(APIView):
