@@ -280,3 +280,37 @@ class RateLawyerView(APIView):
             {"message": "Rating submitted successfully.", "new_rating": lawyer_profile.rating},
             status=status.HTTP_200_OK
         )
+        
+class GetLawyerRatingView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        user = request.user
+        lawyer_id = request.query_params.get('lawyer_id')
+
+        if not lawyer_id:
+            return Response({"error": "lawyer_id is required."}, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            general_profile = user.general_profile
+        except GeneralUserProfile.DoesNotExist:
+            return Response({"error": "Only general users can check ratings."}, status=status.HTTP_403_FORBIDDEN)
+
+        try:
+            lawyer_profile = LawyerProfile.objects.get(id=lawyer_id)
+        except LawyerProfile.DoesNotExist:
+            return Response({"error": "Lawyer not found."}, status=status.HTTP_404_NOT_FOUND)
+
+        try:
+            rating = LawyerRating.objects.get(user=general_profile, lawyer=lawyer_profile)
+            return Response({
+                "has_rated": True,
+                "rating": rating.rating,
+                "rated_at": rating.created_at
+            }, status=status.HTTP_200_OK)
+        except LawyerRating.DoesNotExist:
+            return Response({
+                "has_rated": False,
+                "rating": None,
+                "rated_at": None
+            }, status=status.HTTP_200_OK)
