@@ -128,46 +128,71 @@ const ClientHome = () => {
         },
     ];
 
-    const renderMyLawyers = () => (
-        <div className="space-y-6">
-            <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-semibold text-white">
-                    My Lawyers
-                </h2>
-            </div>
-            <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                {requests
-                    .filter((req) => req.status === "accepted")
-                    .map((request) => {
-                        const lawyer = lawyers.find(
-                            (l) => l.lawyer_profile.id === request.lawyer
-                        );
-                        if (!lawyer) return null;
-                        return (
-                            <LawyerCard
-                                key={lawyer.id}
-                                lawyer={lawyer}
-                                getSpecializationLabel={getSpecializationLabel}
-                                handleSendRequest={null}
-                                hireStatus={request.status}
-                            />
-                        );
-                    })}
-            </div>
-            {requests.filter((req) => req.status === "accepted").length ===
-                0 && (
-                <div className="text-center py-12">
-                    <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-                    <h3 className="text-xl font-semibold mb-2 text-white">
-                        No hired lawyers yet
-                    </h3>
-                    <p className="text-gray-400">
-                        Start by finding and hiring lawyers from the home tab.
-                    </p>
+    const renderMyLawyers = () => {
+        const handleRatingSubmit = (lawyerId, rating, newLawyerRating) => {
+            setLawyers((prevLawyers) =>
+                prevLawyers.map((lawyer) =>
+                    lawyer.lawyer_profile.id === lawyerId
+                        ? {
+                              ...lawyer,
+                              lawyer_profile: {
+                                  ...lawyer.lawyer_profile,
+                                  rating: newLawyerRating,
+                              },
+                          }
+                        : lawyer
+                )
+            );
+
+            console.log(`Rating submitted successfully: ${rating}/5`);
+        };
+
+        return (
+            <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                    <h2 className="text-2xl font-semibold text-white">
+                        My Lawyers
+                    </h2>
                 </div>
-            )}
-        </div>
-    );
+                <div className="grid lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                    {requests
+                        .filter((req) => req.status === "accepted")
+                        .map((request) => {
+                            const lawyer = lawyers.find(
+                                (l) => l.lawyer_profile.id === request.lawyer
+                            );
+                            if (!lawyer) return null;
+                            return (
+                                <LawyerCard
+                                    key={lawyer.id}
+                                    lawyer={lawyer}
+                                    getSpecializationLabel={
+                                        getSpecializationLabel
+                                    }
+                                    handleSendRequest={null}
+                                    hireStatus={request.status}
+                                    showRating={true}
+                                    onRatingSubmit={handleRatingSubmit}
+                                />
+                            );
+                        })}
+                </div>
+                {requests.filter((req) => req.status === "accepted").length ===
+                    0 && (
+                    <div className="text-center py-12">
+                        <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+                        <h3 className="text-xl font-semibold mb-2 text-white">
+                            No hired lawyers yet
+                        </h3>
+                        <p className="text-gray-400">
+                            Start by finding and hiring lawyers from the home
+                            tab.
+                        </p>
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     const renderCases = () => (
         <div className="space-y-6">

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
     MapPin,
     Star,
@@ -9,6 +9,7 @@ import {
     Award,
     Clock,
 } from "lucide-react";
+import axios from "axios";
 
 const getStatusColor = (status) => {
     switch (status) {
@@ -25,12 +26,146 @@ const getStatusColor = (status) => {
     }
 };
 
+const StarRating = ({ rating, onRatingChange, isEditable = false }) => {
+    const [hoveredRating, setHoveredRating] = useState(0);
+
+    return (
+        <div className="flex items-center space-x-1">
+            {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                    key={star}
+                    type="button"
+                    disabled={!isEditable}
+                    className={`${
+                        isEditable
+                            ? "cursor-pointer hover:scale-110 transition-transform"
+                            : "cursor-default"
+                    }`}
+                    onClick={() => isEditable && onRatingChange(star)}
+                    onMouseEnter={() => isEditable && setHoveredRating(star)}
+                    onMouseLeave={() => isEditable && setHoveredRating(0)}
+                >
+                    <Star
+                        className={`w-5 h-5 ${
+                            star <= (hoveredRating || rating)
+                                ? "text-yellow-400 fill-current"
+                                : "text-gray-400"
+                        }`}
+                    />
+                </button>
+            ))}
+        </div>
+    );
+};
+
 const LawyerCard = ({
     lawyer,
     getSpecializationLabel,
     handleSendRequest,
     hireStatus,
+    onRatingSubmit,
+    showRating = false,
 }) => {
+    const [userRating, setUserRating] = useState({
+        hasRated: false,
+        rating: 0,
+        loading: false,
+    });
+    const [showRatingForm, setShowRatingForm] = useState(false);
+    const [selectedRating, setSelectedRating] = useState(0);
+    const [submittingRating, setSubmittingRating] = useState(false);
+
+    useEffect(() => {
+        if (showRating && hireStatus === "accepted") {
+            checkUserRating();
+        }
+    }, [lawyer.lawyer_profile.id, showRating, hireStatus]);
+
+    const checkUserRating = async () => {
+        try {
+            setUserRating((prev) => ({ ...prev, loading: true }));
+            const token = localStorage.getItem("token");
+
+            const response = await axios.get(
+                `http://localhost:8000/api/lawyers/check-lawyer-rating/?lawyer_id=${lawyer.lawyer_profile.id}`,
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                const data = response.data;
+                setUserRating({
+                    hasRated: data.has_rated,
+                    rating: data.rating || 0,
+                    loading: false,
+                });
+            } else {
+                console.error("Error checking rating:", response.statusText);
+                setUserRating((prev) => ({ ...prev, loading: false }));
+            }
+        } catch (error) {
+            console.error("Error checking rating:", error);
+            setUserRating((prev) => ({ ...prev, loading: false }));
+        }
+    };
+
+    const handleRatingSubmit = async () => {
+        if (selectedRating === 0) return;
+
+        try {
+            setSubmittingRating(true);
+            const token = localStorage.getItem("token");
+
+            const response = await axios.post(
+                `http://localhost:8000/api/lawyers/rate/`,
+                {
+                    lawyer_id: lawyer.lawyer_profile.id,
+                    rating: selectedRating,
+                },
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            if (response.status === 200) {
+                const data = response.data;
+                setUserRating({
+                    hasRated: true,
+                    rating: selectedRating,
+                    loading: false,
+                });
+                setShowRatingForm(false);
+                setSelectedRating(0);
+
+                if (onRatingSubmit) {
+                    onRatingSubmit(
+                        lawyer.lawyer_profile.id,
+                        selectedRating,
+                        data.new_rating
+                    );
+                }
+
+                alert("Rating submitted successfully!");
+            } else {
+                const errorData = await response.json();
+                console.error("Error submitting rating:", errorData);
+                alert("Failed to submit rating. Please try again.");
+            }
+        } catch (error) {
+            console.error("Error submitting rating:", error);
+            alert("Network error. Please check your connection and try again.");
+        } finally {
+            setSubmittingRating(false);
+        }
+    };
+
     return (
         <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 hover:border-blue-600/50 transition-all duration-300 hover:transform hover:scale-105 group">
             <div className="flex items-start justify-between mb-4">
@@ -110,6 +245,87 @@ const LawyerCard = ({
                     </div>
                 </div>
             </div>
+            {showRating && hireStatus === "accepted" && (
+                <div className="mb-4 p-4 bg-gray-700 rounded-lg border border-gray-600">
+                    <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-sm font-medium text-white">
+                            Your Rating
+                        </h4>
+                        {userRating.loading && (
+                            <div className="text-xs text-gray-400">
+                                Loading...
+                            </div>
+                        )}
+                    </div>
+
+                    {!userRating.loading && (
+                        <>
+                            {userRating.hasRated ? (
+                                <div className="flex items-center space-x-2">
+                                    <StarRating rating={userRating.rating} />
+                                    <span className="text-sm text-gray-300">
+                                        You rated this lawyer{" "}
+                                        {userRating.rating}/5
+                                    </span>
+                                </div>
+                            ) : (
+                                <div>
+                                    {!showRatingForm ? (
+                                        <button
+                                            onClick={() =>
+                                                setShowRatingForm(true)
+                                            }
+                                            className="text-sm text-blue-400 hover:text-blue-300 transition-colors"
+                                        >
+                                            Rate this lawyer
+                                        </button>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            <div>
+                                                <label className="text-sm text-gray-300 block mb-2">
+                                                    Rate your experience:
+                                                </label>
+                                                <StarRating
+                                                    rating={selectedRating}
+                                                    onRatingChange={
+                                                        setSelectedRating
+                                                    }
+                                                    isEditable={true}
+                                                />
+                                            </div>
+                                            <div className="flex space-x-2">
+                                                <button
+                                                    onClick={handleRatingSubmit}
+                                                    disabled={
+                                                        selectedRating === 0 ||
+                                                        submittingRating
+                                                    }
+                                                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 disabled:cursor-not-allowed text-white text-sm rounded-md transition-colors"
+                                                >
+                                                    {submittingRating
+                                                        ? "Submitting..."
+                                                        : "Submit"}
+                                                </button>
+                                                <button
+                                                    onClick={() => {
+                                                        setShowRatingForm(
+                                                            false
+                                                        );
+                                                        setSelectedRating(0);
+                                                    }}
+                                                    className="px-3 py-1 bg-gray-600 hover:bg-gray-500 text-white text-sm rounded-md transition-colors"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </>
+                    )}
+                </div>
+            )}
 
             <div className="flex space-x-2">
                 {hireStatus === "none" ? (
