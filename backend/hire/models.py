@@ -22,22 +22,3 @@ class Hire(models.Model):
     
     def __str__(self):
         return f'{self.client.full_name} -> {self.lawyer.full_name} | {self.status}'
-
-
-class Transaction(models.Model):
-    STATUS_CHOICES = (
-        ('pending', 'Pending'),
-        ('completed', 'Completed'),
-        ('refunded', 'Refunded'),
-        ('failed', 'Failed')
-    )
-    
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    hire = models.ForeignKey(Hire, on_delete=models.CASCADE, related_name='transactions')
-    amount = models.DecimalField(max_digits=10, decimal_places=2)
-    payment_method = models.CharField(max_length=100)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f'{self.user.email} - {self.amount} - {self.status}'
