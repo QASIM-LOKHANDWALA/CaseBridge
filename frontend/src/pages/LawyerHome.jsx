@@ -9,6 +9,7 @@ import {
     LogOut,
     Briefcase,
     Home,
+    Wallet,
 } from "lucide-react";
 import Profile from "../components/lawyerHome/Profile";
 import useAuth from "../hooks/useAuth";
@@ -18,6 +19,7 @@ import Cases from "../components/lawyerHome/Cases";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import Appointments from "../components/lawyerHome/Appointments";
+import LawyerPayments from "../components/lawyerHome/LawyerPayments";
 
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
@@ -125,6 +127,8 @@ const LawyerHome = () => {
                         )}
                     />
                 );
+            case "payments":
+                return <LawyerPayments clients={clients} token={token} />;
             case "clients":
                 return (
                     <Clients
@@ -304,6 +308,18 @@ const LawyerHome = () => {
                             >
                                 <Calendar className="w-5 h-5" />
                                 <span>Appointments</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("payments")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "messages"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Wallet className="w-5 h-5" />
+                                <span>Payments</span>
                             </button>
 
                             <button
