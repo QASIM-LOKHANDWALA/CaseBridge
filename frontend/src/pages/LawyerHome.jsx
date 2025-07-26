@@ -313,7 +313,7 @@ const LawyerHome = () => {
                             <button
                                 onClick={() => setActiveTab("payments")}
                                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
-                                    activeTab === "messages"
+                                    activeTab === "payments"
                                         ? "bg-blue-600 text-white"
                                         : "text-gray-400 hover:text-white hover:bg-gray-700"
                                 }`}

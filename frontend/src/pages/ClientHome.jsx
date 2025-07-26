@@ -12,6 +12,7 @@ import {
     LogOut,
     Users,
     X,
+    Wallet,
 } from "lucide-react";
 import LawyerCard from "../components/clientHome/LawyerCard";
 import axios from "axios";
@@ -20,6 +21,7 @@ import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import DiscoverLawyers from "../components/clientHome/DiscoverLawyers";
 import Appointments from "../components/clientHome/Appointments";
+import ClientPayment from "../components/clientHome/ClientPayment";
 
 const ClientHome = () => {
     const [activeTab, setActiveTab] = useState("home");
@@ -227,6 +229,8 @@ const ClientHome = () => {
                 return renderMyLawyers();
             case "appointments":
                 return <Appointments />;
+            case "payments":
+                return <ClientPayment token={token} />;
             case "cases":
                 return renderCases();
             default:
@@ -379,6 +383,18 @@ const ClientHome = () => {
                             >
                                 <Calendar className="w-5 h-5" />
                                 <span>Appointments</span>
+                            </button>
+
+                            <button
+                                onClick={() => setActiveTab("payments")}
+                                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg transition-colors ${
+                                    activeTab === "payments"
+                                        ? "bg-blue-600 text-white"
+                                        : "text-gray-400 hover:text-white hover:bg-gray-700"
+                                }`}
+                            >
+                                <Wallet className="w-5 h-5" />
+                                <span>Payments</span>
                             </button>
 
                             <button
