@@ -11,6 +11,7 @@ import {
     RefreshCw,
 } from "lucide-react";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 const ClientPayment = ({ token }) => {
     const [paymentRequests, setPaymentRequests] = useState([]);
@@ -85,13 +86,13 @@ const ClientPayment = ({ token }) => {
                     )
                 );
 
-                alert("Payment completed successfully!");
+                toast.success("Payment completed successfully!");
             } else {
-                alert(data.error || "Payment failed. Please try again.");
+                toast.error(data.error || "Payment failed. Please try again.");
             }
         } catch (error) {
             console.error("Payment failed:", error);
-            alert("Payment failed. Please try again.");
+            toast.error("Payment failed. Please try again.");
         } finally {
             setProcessingPayment(null);
         }

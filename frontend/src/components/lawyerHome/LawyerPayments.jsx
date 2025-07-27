@@ -14,7 +14,10 @@ import {
     CreditCard,
     Send,
     RefreshCw,
+    Trash2,
 } from "lucide-react";
+import toast from "react-hot-toast";
+import axios from "axios";
 
 const LawyerPayments = ({ clients, token }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,6 +29,8 @@ const LawyerPayments = ({ clients, token }) => {
     const [statusFilter, setStatusFilter] = useState("all");
     const [selectedTransaction, setSelectedTransaction] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [deleteConfirmModal, setDeleteConfirmModal] = useState(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const [formData, setFormData] = useState({
         client_id: "",
@@ -35,7 +40,7 @@ const LawyerPayments = ({ clients, token }) => {
 
     const fetchTransactions = async () => {
         try {
-            const response = await fetch(
+            const response = await axios.get(
                 "http://localhost:8000/api/transactions/",
                 {
                     headers: {
@@ -45,8 +50,8 @@ const LawyerPayments = ({ clients, token }) => {
                 }
             );
 
-            if (response.ok) {
-                const data = await response.json();
+            if (response.status === 200) {
+                const data = response.data;
                 const formattedTransactions = data.transactions.map(
                     (transaction) => ({
                         ...transaction,
@@ -131,21 +136,20 @@ const LawyerPayments = ({ clients, token }) => {
         }
 
         try {
-            const response = await fetch(
+            const response = await axios.post(
                 "http://localhost:8000/api/transactions/create/",
+                formData,
                 {
-                    method: "POST",
                     headers: {
                         Authorization: `Token ${token}`,
                         "Content-Type": "application/json",
                     },
-                    body: JSON.stringify(formData),
                 }
             );
 
-            const data = await response.json();
+            const data = response.data;
 
-            if (response.ok) {
+            if (response.status === 201) {
                 const newTransaction = {
                     ...data.transaction,
                     user: {
@@ -163,7 +167,7 @@ const LawyerPayments = ({ clients, token }) => {
                     description: "",
                 });
 
-                alert("Payment request sent successfully!");
+                toast.success("Payment request sent successfully!");
             } else {
                 setError(data.error || "Failed to create payment request");
             }
@@ -173,6 +177,48 @@ const LawyerPayments = ({ clients, token }) => {
         } finally {
             setIsLoading(false);
         }
+    };
+
+    const handleDeleteTransaction = async (transactionId) => {
+        setIsDeleting(true);
+        try {
+            const response = await axios.delete(
+                `http://localhost:8000/api/transactions/${transactionId}/delete/`,
+                {
+                    headers: {
+                        Authorization: `Token ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            );
+
+            const data = response.data;
+
+            if (response.status === 204) {
+                setTransactions((prev) =>
+                    prev.filter(
+                        (transaction) => transaction.id !== transactionId
+                    )
+                );
+                setDeleteConfirmModal(null);
+                toast.success("Payment request deleted successfully!");
+            } else {
+                toast.error(data.error || "Failed to delete payment request");
+            }
+        } catch (err) {
+            toast.error("Network error. Please try again.");
+            console.error("Error deleting payment request:", err);
+        } finally {
+            setIsDeleting(false);
+        }
+    };
+
+    const openDeleteConfirmModal = (transaction) => {
+        setDeleteConfirmModal(transaction);
+    };
+
+    const closeDeleteConfirmModal = () => {
+        setDeleteConfirmModal(null);
     };
 
     const closeModal = () => {
@@ -421,15 +467,34 @@ const LawyerPayments = ({ clients, token }) => {
                                                 </span>
                                             </div>
 
-                                            <button
-                                                onClick={() =>
-                                                    openDetailModal(transaction)
-                                                }
-                                                className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
-                                                title="View Details"
-                                            >
-                                                <Eye className="w-4 h-4" />
-                                            </button>
+                                            <div className="flex items-center space-x-2">
+                                                <button
+                                                    onClick={() =>
+                                                        openDetailModal(
+                                                            transaction
+                                                        )
+                                                    }
+                                                    className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                                    title="View Details"
+                                                >
+                                                    <Eye className="w-4 h-4" />
+                                                </button>
+
+                                                {transaction.status ===
+                                                    "pending" && (
+                                                    <button
+                                                        onClick={() =>
+                                                            openDeleteConfirmModal(
+                                                                transaction
+                                                            )
+                                                        }
+                                                        className="p-2 text-gray-400 hover:text-red-400 transition-colors"
+                                                        title="Delete Payment Request"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
                                     </div>
 
@@ -444,6 +509,100 @@ const LawyerPayments = ({ clients, token }) => {
                     )}
                 </div>
             </div>
+
+            {deleteConfirmModal && (
+                <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 w-full max-w-md">
+                        <div className="flex items-center justify-between p-6 border-b border-gray-700">
+                            <h2 className="text-xl font-semibold text-white">
+                                Delete Payment Request
+                            </h2>
+                            <button
+                                onClick={closeDeleteConfirmModal}
+                                className="text-gray-400 hover:text-white transition-colors"
+                            >
+                                <X className="w-6 h-6" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="flex items-center space-x-3 mb-4">
+                                <div className="w-12 h-12 bg-red-600/20 rounded-full flex items-center justify-center">
+                                    <AlertCircle className="w-6 h-6 text-red-400" />
+                                </div>
+                                <div>
+                                    <h3 className="text-lg font-medium text-white">
+                                        Are you sure?
+                                    </h3>
+                                    <p className="text-sm text-gray-400">
+                                        This action cannot be undone.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div className="bg-gray-900 rounded-lg p-4 mb-6">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-gray-400">
+                                        Client:
+                                    </span>
+                                    <span className="text-white font-medium">
+                                        {deleteConfirmModal.user.full_name}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-gray-400">
+                                        Amount:
+                                    </span>
+                                    <span className="text-white font-medium">
+                                        {formatCurrency(
+                                            deleteConfirmModal.amount
+                                        )}
+                                    </span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="text-sm text-gray-400">
+                                        Description:
+                                    </span>
+                                    <span className="text-white text-sm text-right max-w-48 truncate">
+                                        {deleteConfirmModal.description}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="flex justify-end space-x-3">
+                                <button
+                                    onClick={closeDeleteConfirmModal}
+                                    className="px-4 py-2 text-gray-400 hover:text-white transition-colors"
+                                    disabled={isDeleting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() =>
+                                        handleDeleteTransaction(
+                                            deleteConfirmModal.id
+                                        )
+                                    }
+                                    disabled={isDeleting}
+                                    className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
+                                >
+                                    {isDeleting ? (
+                                        <>
+                                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                            <span>Deleting...</span>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <Trash2 className="w-4 h-4" />
+                                            <span>Delete</span>
+                                        </>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {isModalOpen && (
                 <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -587,64 +746,6 @@ const LawyerPayments = ({ clients, token }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-400 mb-1">
-                                        Transaction ID
-                                    </p>
-                                    <p className="text-white font-medium">
-                                        {selectedTransaction.id}
-                                    </p>
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-400 mb-1">
-                                        Status
-                                    </p>
-                                    <div
-                                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(
-                                            selectedTransaction.status
-                                        )}`}
-                                    >
-                                        {getStatusIcon(
-                                            selectedTransaction.status
-                                        )}
-                                        <span className="capitalize">
-                                            {selectedTransaction.status}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div>
-                                <p className="text-sm text-gray-400 mb-1">
-                                    Client
-                                </p>
-                                <p className="text-white font-medium">
-                                    {selectedTransaction.user.full_name}
-                                </p>
-                                <p className="text-sm text-gray-400">
-                                    {selectedTransaction.user.email}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="text-sm text-gray-400 mb-1">
-                                    Amount
-                                </p>
-                                <p className="text-2xl font-bold text-white">
-                                    {formatCurrency(selectedTransaction.amount)}
-                                </p>
-                            </div>
-
-                            <div>
-                                <p className="text-sm text-gray-400 mb-1">
-                                    Description
-                                </p>
-                                <p className="text-white">
-                                    {selectedTransaction.description}
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <p className="text-sm text-gray-400 mb-1">
                                         Request Sent
                                     </p>
                                     <p className="text-white">
@@ -667,7 +768,21 @@ const LawyerPayments = ({ clients, token }) => {
                                 )}
                             </div>
 
-                            <div className="flex justify-end pt-4">
+                            <div className="flex justify-end space-x-3 pt-4">
+                                {selectedTransaction.status === "pending" && (
+                                    <button
+                                        onClick={() => {
+                                            closeDetailModal();
+                                            openDeleteConfirmModal(
+                                                selectedTransaction
+                                            );
+                                        }}
+                                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors flex items-center space-x-2"
+                                    >
+                                        <Trash2 className="w-4 h-4" />
+                                        <span>Delete Request</span>
+                                    </button>
+                                )}
                                 <button
                                     onClick={closeDetailModal}
                                     className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
