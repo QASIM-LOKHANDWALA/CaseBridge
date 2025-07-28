@@ -9,7 +9,7 @@ from .models import LawyerProfile, LegalCase, LawyerDocuments, LawyerRating
 from users.models import User
 from appointments.models import CaseAppointment
 from clients.models import GeneralUserProfile
-from .serializers import LawyerDocumentsSerializer
+from .serializers import LawyerDocumentsSerializer, LawyerProfileSerializer
 from users.serializers import UserSerializer
 from appointments.serializers import CaseAppointmentSerializer
 from rest_framework import status
@@ -46,6 +46,29 @@ class LawyerDetailView(APIView):
         lawyer = self.get_object(user_id)
         serializer = UserSerializer(lawyer)
         return Response(serializer.data, status=status.HTTP_200_OK)
+
+class UpdateLawyerProfileView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get_object(self, user):
+        try:
+            return user.lawyer_profile
+        except LawyerProfile.DoesNotExist:
+            raise Http404("Lawyer profile not found.")
+
+    def put(self, request):
+        lawyer_profile = self.get_object(request.user)
+        serializer = LawyerProfileSerializer(lawyer_profile, data=request.data, partial=True)
+
+        if serializer.is_valid():
+            serializer.save()
+            return Response({
+                "message": "Profile updated successfully.",
+                "profile": serializer.data
+            }, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
     
 @api_view(['GET'])
 def get_lawyer_clients(request, lawyer_id):

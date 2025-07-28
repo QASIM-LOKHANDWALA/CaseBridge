@@ -22,3 +22,5 @@ class LawyerProfileSerializer(serializers.ModelSerializer):
             'experience_years', 'location', 'bio', 'is_verified',
             'profile_picture', 'documents',  'rating', 'created_at', 'clients_served', 'cases_won'
         ]
+        
+        read_only_fields = ['is_verified']

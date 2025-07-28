@@ -746,6 +746,63 @@ const LawyerPayments = ({ clients, token }) => {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <p className="text-sm text-gray-400 mb-1">
+                                        Transaction ID
+                                    </p>
+                                    <p className="text-white font-medium">
+                                        {selectedTransaction.id}
+                                    </p>
+                                </div>
+                                <div>
+                                    <p className="text-sm text-gray-400 mb-1">
+                                        Status
+                                    </p>
+                                    <div
+                                        className={`inline-flex items-center space-x-1 px-2 py-1 rounded-full text-xs border ${getStatusColor(
+                                            selectedTransaction.status
+                                        )}`}
+                                    >
+                                        {getStatusIcon(
+                                            selectedTransaction.status
+                                        )}
+                                        <span className="capitalize">
+                                            {selectedTransaction.status}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-400 mb-1">
+                                    Client
+                                </p>
+                                <p className="text-white font-medium">
+                                    {selectedTransaction.user.full_name}
+                                </p>
+                                <p className="text-sm text-gray-400">
+                                    {selectedTransaction.user.email}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-400 mb-1">
+                                    Amount
+                                </p>
+                                <p className="text-2xl font-bold text-white">
+                                    {formatCurrency(selectedTransaction.amount)}
+                                </p>
+                            </div>
+
+                            <div>
+                                <p className="text-sm text-gray-400 mb-1">
+                                    Description
+                                </p>
+                                <p className="text-white">
+                                    {selectedTransaction.description}
+                                </p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <p className="text-sm text-gray-400 mb-1">
                                         Request Sent
                                     </p>
                                     <p className="text-white">

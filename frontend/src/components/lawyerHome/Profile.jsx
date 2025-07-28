@@ -17,9 +17,12 @@ import {
 import useAuth from "../../hooks/useAuth";
 import toast from "react-hot-toast";
 import axios from "axios";
+import EditProfileModal from "./EditProfileModal";
 
 const Profile = () => {
     const { user, token, profile } = useAuth();
+
+    const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
     const getExperienceText = (experienceYears) => {
         const experienceMap = {
@@ -83,14 +86,35 @@ const Profile = () => {
         }
     };
 
+    const handleProfileUpdate = async () => {
+        try {
+            await profile();
+            toast.success("Profile refreshed successfully");
+        } catch (error) {
+            console.error("Failed to refresh profile:", error);
+            toast.error("Failed to refresh profile data");
+        }
+    };
+
     return (
         <div className="space-y-6">
+            <EditProfileModal
+                isOpen={isEditModalOpen}
+                onClose={() => setIsEditModalOpen(false)}
+                user={user}
+                token={token}
+                onProfileUpdate={handleProfileUpdate}
+            />
+
             <div className="bg-gray-800 p-6 rounded-xl border border-gray-700">
                 <div className="flex items-center justify-between mb-6">
                     <h3 className="text-lg font-semibold text-white">
                         Profile Information
                     </h3>
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center space-x-2">
+                    <button
+                        onClick={() => setIsEditModalOpen(true)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors flex items-center space-x-2"
+                    >
                         <Edit className="w-4 h-4" />
                         <span>Edit Profile</span>
                     </button>
@@ -102,9 +126,7 @@ const Profile = () => {
                             <div className="w-20 h-20 bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
                                 {user.lawyer_profile.profile_picture ? (
                                     <img
-                                        src={
-                                            user.lawyer_profile.profile_picture
-                                        }
+                                        src={`http://localhost:8000/${user.lawyer_profile.profile_picture}`}
                                         alt={user.lawyer_profile.full_name}
                                         className="w-full h-full object-cover"
                                     />
@@ -251,17 +273,17 @@ const Profile = () => {
 
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
                     <div className="text-2xl font-bold text-white mb-2">
-                        {user.lawyer_profile.cases_won}
+                        {user.number_of_cases}
                     </div>
                     <div className="flex items-center justify-center mb-1">
                         <Award className="w-4 h-4 text-green-400" />
                     </div>
-                    <p className="text-sm text-gray-400">Cases Won</p>
+                    <p className="text-sm text-gray-400">Active Cases</p>
                 </div>
 
                 <div className="bg-gray-800 p-6 rounded-xl border border-gray-700 text-center">
                     <div className="text-2xl font-bold text-white mb-2">
-                        {user.lawyer_profile.clients_served}
+                        {user.number_of_clients}
                     </div>
                     <div className="flex items-center justify-center mb-1">
                         <Users className="w-4 h-4 text-blue-400" />
