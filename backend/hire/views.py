@@ -8,6 +8,12 @@ from lawyers.models import LawyerProfile
 from clients.models import GeneralUserProfile
 from .serializers import HireLawyerSerializer
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+debug = os.getenv("DEBUG", "False")
+
 class HireLawyerView(APIView):
     permission_classes = [IsAuthenticated]
 
@@ -66,7 +72,6 @@ class ClientHireRequestsView(APIView):
 
     def get(self, request):
         user = request.user
-        print(user)
 
         try:
             client_profile = user.general_profile

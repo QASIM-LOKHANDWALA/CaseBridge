@@ -10,13 +10,17 @@ from lawyers.models import LawyerProfile
 from users.serializers import UserSerializer
 from rest_framework.permissions import IsAuthenticated
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+debug = os.getenv("DEBUG", "False")
+
 class SignupView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         data = request.data
-        
-        print("Incoming signup data:", data)
         
         role = data.get("role")
         email = data.get("email")
@@ -24,21 +28,25 @@ class SignupView(APIView):
         full_name = data.get("full_name")
 
         if not all([email, password, role, full_name]):
-            print("Missing field(s):", email, password, role, full_name)
+            if debug:
+                print("Missing field(s):", email, password, role, full_name)
             return Response({"error": "Missing required fields"}, status=status.HTTP_400_BAD_REQUEST)
 
         if User.objects.filter(email=email).exists():
-            print("Email already exists:", email)
+            if debug:
+                print("Email already exists:", email)
             return Response({"error": "Email already registered"}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             user = User.objects.create_user(email=email, password=password, role=role)
         except Exception as e:
-            print("Error creating user:", str(e))
+            if debug:
+                print("Error creating user:", str(e))
             return Response({"error": "User creation failed"}, status=status.HTTP_400_BAD_REQUEST)
     
         if role == "general":
-            print("Creating GeneralUserProfile...")
+            if debug:
+                print("Creating GeneralUserProfile...")
 
             phone_number = data.get("phone_number")
             address = data.get("address")
@@ -49,15 +57,14 @@ class SignupView(APIView):
                 address=address,
             )
         elif role == "lawyer":
-            print("Creating LawyerProfile...")
+            if debug:
+                print("Creating LawyerProfile...")
 
             bar_reg = data.get("bar_registration_number")
             specialization = data.get("specialization")
             experience_years = data.get("experience_years")
             location = data.get("location")
             bio = data.get("bio", "")
-            
-            print(bar_reg, specialization, experience_years, location, bio)
 
             if LawyerProfile.objects.filter(bar_registration_number=bar_reg).exists():
                 return Response({"error": "Bar registration number already exists"}, status=status.HTTP_400_BAD_REQUEST)
@@ -114,7 +121,9 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            print("Logging out user:", request.user.email)
+            
+            if debug:
+                print("Logging out user:", request.user.email)
             request.user.auth_token.delete()
             return Response({"message": "Logged out successfully"}, status=status.HTTP_200_OK)
         except Token.DoesNotExist:

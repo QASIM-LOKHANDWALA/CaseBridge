@@ -17,6 +17,12 @@ from django.utils import timezone
 from rest_framework.parsers import MultiPartParser, FormParser
 from .serializers import CaseDocumentSerializer
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+debug = os.getenv("DEBUG", "False")
+
 def update_lawyer_rating(lawyer):
     avg_rating = LawyerRating.objects.filter(lawyer=lawyer).aggregate(avg=Avg('rating'))['avg'] or 0
     lawyer.rating = round(avg_rating, 1)
@@ -156,7 +162,6 @@ class LawyerCasesView(APIView):
 
     def post(self, request):
         user = request.user
-        print("Incoming POST data:", request.data)
 
         try:
             lawyer_profile = user.lawyer_profile

@@ -10,6 +10,12 @@ from decimal import Decimal
 from .models import Transaction, LawyerProfile, GeneralUserProfile
 from .serializers import TransactionSerializer
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+debug = os.getenv("DEBUG", "False")
+
 
 class CreatePaymentRequestView(APIView):
     permission_classes = [IsAuthenticated]

@@ -11,6 +11,12 @@ from .serializers import MessageSerializer
 from django.utils.dateparse import parse_datetime
 from utils.rag_model import get_legal_answer
 
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+debug = os.getenv("DEBUG", "False")
+
 class MessageListView(APIView):
     permission_classes = [IsAuthenticated]
 
