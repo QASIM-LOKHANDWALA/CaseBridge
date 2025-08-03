@@ -9,6 +9,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # SECURITY WARNING: keep the secret key used in production secret!
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
+DB_PASSWORD = os.getenv("DB_PASSWORD")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
@@ -88,10 +89,15 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'case_bridge',
+        'USER': 'root',
+        'PASSWORD': DB_PASSWORD,
+        'HOST': 'localhost',
+        'PORT': '3306',
     }
 }
+
 
 
 # Password validation
