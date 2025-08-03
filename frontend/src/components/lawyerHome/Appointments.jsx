@@ -23,6 +23,8 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const Appointments = ({ clients }) => {
     const [appointments, setAppointments] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -56,18 +58,15 @@ const Appointments = ({ clients }) => {
                 }
             );
 
-            console.log(response.data);
-
             setAppointments(response.data || []);
         } catch (error) {
-            console.error("Error fetching appointments:", error);
+            if (isDev) console.error("Error fetching appointments:", error);
             toast.error("Failed to fetch appointments");
         }
     };
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        console.log(name, value);
 
         setFormData((prev) => ({
             ...prev,
@@ -113,7 +112,7 @@ const Appointments = ({ clients }) => {
             }
         } catch (err) {
             setError(err.response?.data?.error || "Failed to save appointment");
-            console.error("Error saving appointment:", err);
+            if (isDev) console.error("Error saving appointment:", err);
         } finally {
             setIsLoading(false);
         }
@@ -137,7 +136,7 @@ const Appointments = ({ clients }) => {
                 toast.success("Appointment status updated!");
             }
         } catch (error) {
-            console.error("Error updating status:", error);
+            if (isDev) console.error("Error updating status:", error);
             toast.error("Failed to update appointment status");
         }
     };
@@ -164,7 +163,7 @@ const Appointments = ({ clients }) => {
                 toast.success("Appointment deleted successfully!");
             }
         } catch (error) {
-            console.error("Error deleting appointment:", error);
+            if (isDev) console.error("Error deleting appointment:", error);
             toast.error("Failed to delete appointment");
         }
     };

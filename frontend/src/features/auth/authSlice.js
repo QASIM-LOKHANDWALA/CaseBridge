@@ -187,7 +187,6 @@ export const authSlice = createSlice({
                 state.error = null;
             })
             .addCase(logoutUser.fulfilled, (state) => {
-                console.log("Signout fulfilled");
                 state.loading = false;
                 state.user = null;
                 state.token = null;

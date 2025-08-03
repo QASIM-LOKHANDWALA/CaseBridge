@@ -21,6 +21,8 @@ import { useNavigate } from "react-router-dom";
 import Appointments from "../components/lawyerHome/Appointments";
 import LawyerPayments from "../components/lawyerHome/LawyerPayments";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const LawyerHome = () => {
     const [activeTab, setActiveTab] = useState("profile");
     const [showNotifications, setShowNotifications] = useState(false);
@@ -39,7 +41,7 @@ const LawyerHome = () => {
                 },
             }
         );
-        console.log(response.data);
+        if (isDev) console.log(response.data);
         setClients(response.data);
     };
 
@@ -52,7 +54,7 @@ const LawyerHome = () => {
                 },
             }
         );
-        console.log(response.data);
+        if (isDev) console.log(response.data);
         setCases(response.data.cases);
     };
 
@@ -67,8 +69,6 @@ const LawyerHome = () => {
 
     const handleClientRequest = async (hireId, status) => {
         try {
-            console.log(status);
-
             const response = await axios.patch(
                 `http://localhost:8000/api/hire/${hireId}/respond/`,
                 {
@@ -87,12 +87,18 @@ const LawyerHome = () => {
                         ? { ...client, hire_status: status }
                         : client
                 );
-                console.log("Client hire request accepted: ", response.data);
+                if (isDev)
+                    console.log(
+                        "Client hire request accepted: ",
+                        response.data
+                    );
 
                 setClients(updatedClients);
             }
         } catch (error) {
-            console.error("Error accepting client hire request: ", error);
+            if (isDev)
+                console.error("Error accepting client hire request: ", error);
+            toast.error(`Error accepting client hire request: ${error}`);
         }
     };
 
@@ -100,12 +106,11 @@ const LawyerHome = () => {
         e.preventDefault();
         try {
             const data = await logout();
-            console.log(data);
 
             toast.success("Logout Successfull!");
             navigate("/");
         } catch (err) {
-            console.error("Auth error:", err);
+            if (isDev) console.error("Auth error:", err);
             toast.error(`Logout failed. ${err}`);
         }
     };

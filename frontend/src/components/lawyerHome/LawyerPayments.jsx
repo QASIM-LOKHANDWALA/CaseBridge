@@ -66,7 +66,7 @@ const LawyerPayments = ({ clients, token }) => {
                 setFilteredTransactions(formattedTransactions);
             }
         } catch (error) {
-            console.error("Error fetching transactions:", error);
+            toast.error("Error fetching transactions:", error);
         }
     };
 
@@ -173,7 +173,6 @@ const LawyerPayments = ({ clients, token }) => {
             }
         } catch (err) {
             setError("Network error. Please try again.");
-            console.error("Error creating payment request:", err);
         } finally {
             setIsLoading(false);
         }
@@ -207,7 +206,6 @@ const LawyerPayments = ({ clients, token }) => {
             }
         } catch (err) {
             toast.error("Network error. Please try again.");
-            console.error("Error deleting payment request:", err);
         } finally {
             setIsDeleting(false);
         }

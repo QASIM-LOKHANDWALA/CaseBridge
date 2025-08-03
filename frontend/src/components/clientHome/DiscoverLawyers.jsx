@@ -1,6 +1,9 @@
 import React, { useState } from "react";
 import { Search, Filter, Shield } from "lucide-react";
 import LawyerCard from "./LawyerCard";
+import toast from "react-hot-toast";
+
+const isDev = import.meta.env.VITE_DEV;
 
 const DiscoverLawyers = ({
     lawyers,
@@ -109,7 +112,7 @@ const DiscoverLawyers = ({
                 setRequests((prevRequests) => [...prevRequests, newRequest]);
             }
         } catch (error) {
-            console.log("Error in sending request : ", error);
+            toast.error("Error in sending request : ", error);
         }
     };
 

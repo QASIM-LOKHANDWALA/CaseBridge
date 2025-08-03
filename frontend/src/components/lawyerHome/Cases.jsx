@@ -20,6 +20,8 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const Cases = ({ cases, onCaseAdded, clients }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -51,7 +53,6 @@ const Cases = ({ cases, onCaseAdded, clients }) => {
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        console.log(`Input changed: ${name} = ${value}`);
 
         setFormData((prev) => ({
             ...prev,
@@ -108,7 +109,7 @@ const Cases = ({ cases, onCaseAdded, clients }) => {
             }
         } catch (err) {
             setError("Network error. Please try again.");
-            console.error("Error creating case:", err);
+            if (isDev) console.error("Error creating case:", err);
         } finally {
             setIsLoading(false);
         }
@@ -140,7 +141,7 @@ const Cases = ({ cases, onCaseAdded, clients }) => {
                 toast.success("Document added!");
             }
         } catch (error) {
-            console.error("Upload failed:", error);
+            if (isDev) console.error("Upload failed:", error);
             toast.error("Failed to add document.");
         } finally {
             setUploadingFiles((prev) => {

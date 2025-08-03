@@ -20,6 +20,8 @@ import useAuth from "../../hooks/useAuth";
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const Appointments = () => {
     const [appointments, setAppointments] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
@@ -45,11 +47,10 @@ const Appointments = () => {
                     },
                 }
             );
-
-            console.log(response.data);
+            if (isDev) console.log(response.data);
             setAppointments(response.data || []);
         } catch (error) {
-            console.error("Error fetching appointments:", error);
+            if (isDev) console.error("Error fetching appointments:", error);
             toast.error("Failed to fetch appointments");
         } finally {
             setIsLoading(false);

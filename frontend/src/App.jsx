@@ -11,10 +11,6 @@ import LawyerHome from "./pages/LawyerHome";
 const App = () => {
     const { user } = useAuth();
 
-    useEffect(() => {
-        console.log(user);
-    }, [user]);
-
     return (
         <div>
             <Routes>

@@ -13,6 +13,8 @@ import {
 import axios from "axios";
 import toast from "react-hot-toast";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const ClientPayment = ({ token }) => {
     const [paymentRequests, setPaymentRequests] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
@@ -33,15 +35,17 @@ const ClientPayment = ({ token }) => {
                 }
             );
 
-            console.log("Fetch Payments : ", response);
+            if (isDev) console.log("Fetch Payments : ", response);
 
             if (response.status === 200) {
                 setPaymentRequests(response.data.payment_requests);
             } else {
-                console.error("Failed to fetch payment requests");
+                if (isDev) console.error("Failed to fetch payment requests");
+                toast.error("Failed to fetch payement requests");
             }
         } catch (error) {
-            console.error("Error fetching payment requests:", error);
+            if (isDev) console.error("Error fetching payment requests:", error);
+            toast.error("Failed to fetch payement requests");
         } finally {
             setIsLoading(false);
         }
@@ -91,7 +95,6 @@ const ClientPayment = ({ token }) => {
                 toast.error(data.error || "Payment failed. Please try again.");
             }
         } catch (error) {
-            console.error("Payment failed:", error);
             toast.error("Payment failed. Please try again.");
         } finally {
             setProcessingPayment(null);

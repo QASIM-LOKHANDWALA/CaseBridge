@@ -11,6 +11,8 @@ import {
     X,
 } from "lucide-react";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const STATUS_COLORS = {
     pending: "bg-yellow-600/20 text-yellow-400",
     accepted: "bg-green-600/20 text-green-400",
@@ -21,11 +23,11 @@ const STATUS_COLORS = {
 
 const Clients = ({ clients, handleClientRequest }) => {
     const handleAccept = (clientId) => {
-        console.log("Accepting client hire request:", clientId);
+        if (isDev) console.log("Accepting client hire request:", clientId);
         if (handleClientRequest) handleClientRequest(clientId, "accepted");
     };
     const handleReject = (clientId) => {
-        console.log("Rejecting client hire request:", clientId);
+        if (isDev) console.log("Rejecting client hire request:", clientId);
         if (handleClientRequest) handleClientRequest(clientId, "rejected");
     };
 

@@ -19,6 +19,8 @@ import toast from "react-hot-toast";
 import axios from "axios";
 import EditProfileModal from "./EditProfileModal";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const Profile = () => {
     const { user, token, profile } = useAuth();
 
@@ -72,17 +74,18 @@ const Profile = () => {
             );
             if (response.status === 201) {
                 const response = await profile();
-                console.log("Profile refresh: ", response.data);
+                if (isDev) console.log("Profile refresh: ", response.data);
 
                 toast.success("Documents uploaded successfully");
             }
             window.location.reload();
         } catch (error) {
-            console.error(
-                "Document upload failed:",
-                error.response?.data || error.message
-            );
-            alert("Failed to upload documents");
+            if (isDev)
+                console.error(
+                    "Document upload failed:",
+                    error.response?.data || error.message
+                );
+            toast.error("Failed to upload documents");
         }
     };
 
@@ -91,7 +94,6 @@ const Profile = () => {
             await profile();
             toast.success("Profile refreshed successfully");
         } catch (error) {
-            console.error("Failed to refresh profile:", error);
             toast.error("Failed to refresh profile data");
         }
     };

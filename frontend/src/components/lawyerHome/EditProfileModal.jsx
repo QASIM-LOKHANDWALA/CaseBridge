@@ -101,7 +101,6 @@ const EditProfileModal = ({
                 onClose();
             }
         } catch (error) {
-            console.error("Profile update failed:", error);
             toast.error(
                 error.response?.data?.message ||
                     "Failed to update profile. Please try again."

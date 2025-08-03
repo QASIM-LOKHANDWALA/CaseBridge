@@ -23,6 +23,8 @@ import DiscoverLawyers from "../components/clientHome/DiscoverLawyers";
 import Appointments from "../components/clientHome/Appointments";
 import ClientPayment from "../components/clientHome/ClientPayment";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const ClientHome = () => {
     const [activeTab, setActiveTab] = useState("home");
     const [showNotifications, setShowNotifications] = useState(false);
@@ -41,13 +43,13 @@ const ClientHome = () => {
                     },
                 }
             );
-            console.log(`Fetch Lawyers Response : `, response.data);
+            if (isDev) console.log(`Fetch Lawyers Response : `, response.data);
 
             if (response.status === 200) {
                 setLawyers(response.data);
             }
         } catch (error) {
-            console.log(`Error fetching lawyers: ${error}`);
+            toast.error(`Error fetching lawyers: ${error}`);
         }
     };
 
@@ -61,13 +63,13 @@ const ClientHome = () => {
                     },
                 }
             );
-            console.log(`Fetch Requests Response : `, response.data);
+            if (isDev) console.log(`Fetch Requests Response : `, response.data);
 
             if (response.status === 200) {
                 setRequests(response.data);
             }
         } catch (error) {
-            console.log("Error fetching requests : ", error);
+            if (isDev) console.log("Error fetching requests : ", error);
         }
     };
 
@@ -75,11 +77,9 @@ const ClientHome = () => {
         e.preventDefault();
         try {
             const data = await logout();
-            console.log(data);
             toast.success("Logout Successful!");
             navigate("/");
         } catch (err) {
-            console.error("Auth error:", err);
             toast.error(`Logout failed. ${err}`);
         }
     };
@@ -145,8 +145,6 @@ const ClientHome = () => {
                         : lawyer
                 )
             );
-
-            console.log(`Rating submitted successfully: ${rating}/5`);
         };
 
         return (

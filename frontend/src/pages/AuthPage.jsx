@@ -117,7 +117,6 @@ const AuthPage = () => {
             }
             navigate("/home");
         } catch (err) {
-            console.error("Auth error:", err);
             toast.error(`Authentication failed. ${err}`);
         }
     };

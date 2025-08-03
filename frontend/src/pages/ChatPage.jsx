@@ -20,6 +20,9 @@ import {
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
 import { Link } from "react-router-dom";
+import toast from "react-hot-toast";
+
+const isDev = import.meta.env.VITE_DEV;
 
 const ChatPage = () => {
     const [contacts, setContacts] = useState([]);
@@ -62,10 +65,6 @@ const ChatPage = () => {
     };
 
     useEffect(() => {
-        console.log(conversation);
-    }, [conversation]);
-
-    useEffect(() => {
         return () => {
             clearPollingInterval();
         };
@@ -91,7 +90,7 @@ const ChatPage = () => {
             fetchMessages(res.data.conversation_id);
             startPollingMessages(res.data.conversation_id);
         } catch (error) {
-            console.error("Failed to start conversation:", error);
+            toast.error("Failed to start conversation:", error);
         }
     };
 
@@ -107,7 +106,7 @@ const ChatPage = () => {
             );
             setMessages(res.data);
         } catch (error) {
-            console.error("Failed to fetch messages:", error);
+            toast.error("Failed to fetch messages:", error);
         }
     };
 
@@ -115,19 +114,20 @@ const ChatPage = () => {
 
     const clearPollingInterval = () => {
         if (pollingIntervalRef.current) {
-            console.log("Clearing previous polling interval");
+            if (isDev) console.log("Clearing previous polling interval");
             clearInterval(pollingIntervalRef.current);
             pollingIntervalRef.current = null;
         }
     };
 
     const startPollingMessages = (conversationId) => {
-        console.log("Started Polling for conversation", conversationId);
+        if (isDev)
+            console.log("Started Polling for conversation", conversationId);
 
         clearPollingInterval();
 
         pollingIntervalRef.current = setInterval(() => {
-            console.log("Updating Conversations");
+            if (isDev) console.log("Updating Conversations");
             fetchMessages(conversationId);
         }, 5000);
     };
@@ -155,7 +155,7 @@ const ChatPage = () => {
             ? `http://127.0.0.1:8000/api/chat/conversations/${conversation.id}/legal-bot/`
             : `http://127.0.0.1:8000/api/chat/conversations/${conversation.id}/send/`;
 
-        console.log("Sending to:", url, "IsBot:", isBot);
+        if (isDev) console.log("Sending to:", url, "IsBot:", isBot);
 
         const tempMessage = {
             id: Date.now(),
@@ -197,7 +197,7 @@ const ChatPage = () => {
                 // setMessages((prev) => [...prev.slice(0, -1)]);
             }
         } catch (err) {
-            console.error("Message failed", err);
+            if (isDev) console.error("Message failed", err);
             setMessages((prev) => prev.slice(0, -1));
             setNewText(messageText);
             setIsBotTyping(false);
@@ -254,7 +254,7 @@ const ChatPage = () => {
             fetchMessages(res.data.conversation_id);
             startPollingMessages(res.data.conversation_id);
         } catch (err) {
-            console.error("Bot init failed", err);
+            if (isDev) console.error("Bot init failed", err);
         }
     };
 
@@ -277,7 +277,7 @@ const ChatPage = () => {
             }`}
             onClick={() => {
                 isBot ? openBotConversation() : openConversation(contact);
-                console.log(isBot, contact);
+                if (isDev) console.log(isBot, contact);
             }}
         >
             <div className="flex items-center space-x-3">

@@ -11,6 +11,8 @@ import {
 } from "lucide-react";
 import axios from "axios";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const getStatusColor = (status) => {
     switch (status) {
         case "pending":
@@ -104,11 +106,15 @@ const LawyerCard = ({
                     loading: false,
                 });
             } else {
-                console.error("Error checking rating:", response.statusText);
+                if (isDev)
+                    console.error(
+                        "Error checking rating:",
+                        response.statusText
+                    );
                 setUserRating((prev) => ({ ...prev, loading: false }));
             }
         } catch (error) {
-            console.error("Error checking rating:", error);
+            if (isDev) console.error("Error checking rating:", error);
             setUserRating((prev) => ({ ...prev, loading: false }));
         }
     };
@@ -155,11 +161,11 @@ const LawyerCard = ({
                 alert("Rating submitted successfully!");
             } else {
                 const errorData = await response.json();
-                console.error("Error submitting rating:", errorData);
+                if (isDev) console.error("Error submitting rating:", errorData);
                 alert("Failed to submit rating. Please try again.");
             }
         } catch (error) {
-            console.error("Error submitting rating:", error);
+            if (isDev) console.error("Error submitting rating:", error);
             alert("Network error. Please check your connection and try again.");
         } finally {
             setSubmittingRating(false);
