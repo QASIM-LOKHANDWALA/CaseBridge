@@ -19,6 +19,8 @@ import {
 import toast from "react-hot-toast";
 import axios from "axios";
 
+const isDev = import.meta.env.VITE_DEV;
+
 const LawyerPayments = ({ clients, token }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -149,6 +151,8 @@ const LawyerPayments = ({ clients, token }) => {
 
             const data = response.data;
 
+            console.log("Payment creation: ", response.data);
+
             if (response.status === 201) {
                 const newTransaction = {
                     ...data.transaction,
@@ -158,6 +162,9 @@ const LawyerPayments = ({ clients, token }) => {
                         email: data.transaction.user_email,
                     },
                 };
+                
+
+                console.log("New transaction: ", newTransaction);
 
                 setTransactions((prev) => [newTransaction, ...prev]);
                 setIsModalOpen(false);

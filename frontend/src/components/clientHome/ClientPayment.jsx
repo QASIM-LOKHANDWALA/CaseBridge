@@ -21,6 +21,12 @@ const ClientPayment = ({ token }) => {
     const [processingPayment, setProcessingPayment] = useState(null);
     const [selectedRequest, setSelectedRequest] = useState(null);
     const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+    const [stats, setStats] = useState({
+        total_paid: 0,
+        total_pending: 0,
+        completed_count: 0,
+        pending_count: 0,
+    });
 
     const fetchPaymentRequests = async () => {
         try {
@@ -41,32 +47,20 @@ const ClientPayment = ({ token }) => {
                 setPaymentRequests(response.data.payment_requests);
             } else {
                 if (isDev) console.error("Failed to fetch payment requests");
-                toast.error("Failed to fetch payement requests");
+                toast.error("Failed to fetch payment requests");
             }
         } catch (error) {
             if (isDev) console.error("Error fetching payment requests:", error);
-            toast.error("Failed to fetch payement requests");
+            toast.error("Failed to fetch payment requests");
         } finally {
             setIsLoading(false);
         }
     };
 
-    useEffect(() => {
-        if (token) {
-            fetchPaymentRequests();
-        }
-    }, [token]);
-
-    const handlePayment = async (requestId) => {
-        const request = paymentRequests.find((r) => r.id === requestId);
-        if (!request) return;
-
-        setProcessingPayment(requestId);
-
+    const fetchPaymentStats = async () => {
         try {
-            const response = await axios.post(
-                `http://localhost:8000/api/transactions/clients/payments/${request.id}/pay/`,
-                {},
+            const response = await axios.get(
+                "http://localhost:8000/api/transactions/clients/payment-requests/stats/",
                 {
                     headers: {
                         Authorization: `Token ${token}`,
@@ -75,28 +69,158 @@ const ClientPayment = ({ token }) => {
                 }
             );
 
-            const data = response.data;
-
             if (response.status === 200) {
-                setPaymentRequests((prev) =>
-                    prev.map((req) =>
-                        req.id === requestId
-                            ? {
-                                  ...req,
-                                  status: "completed",
-                                  paid_at: new Date().toISOString(),
-                              }
-                            : req
-                    )
-                );
-
-                toast.success("Payment completed successfully!");
-            } else {
-                toast.error(data.error || "Payment failed. Please try again.");
+                setStats(response.data);
             }
         } catch (error) {
-            toast.error("Payment failed. Please try again.");
-        } finally {
+            if (isDev) console.error("Error fetching payment stats:", error);
+        }
+    };
+
+    useEffect(() => {
+        if (token) {
+            fetchPaymentRequests();
+            fetchPaymentStats();
+        }
+    }, [token]);
+
+    const loadRazorpayScript = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement("script");
+            script.src = "https://checkout.razorpay.com/v1/checkout.js";
+            script.onload = () => {
+                resolve(true);
+            };
+            script.onerror = () => {
+                resolve(false);
+            };
+            document.body.appendChild(script);
+        });
+    };
+
+    const handlePayment = async (requestId) => {
+        const request = paymentRequests.find((r) => r.id === requestId);
+        if (!request) return;
+
+        setProcessingPayment(requestId);
+
+        try {
+            if (!request.razorpay_order_id) {
+                try {
+                    const response = await axios.post(
+                        `http://localhost:8000/api/transactions/clients/payments/${request.id}/pay/`,
+                        {},
+                        {
+                            headers: {
+                                Authorization: `Token ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    );
+
+                    if (response.status === 200) {
+                        setPaymentRequests((prev) =>
+                            prev.map((req) =>
+                                req.id === requestId
+                                    ? {
+                                          ...req,
+                                          status: "completed",
+                                          paid_at: new Date().toISOString(),
+                                      }
+                                    : req
+                            )
+                        );
+
+                        fetchPaymentStats();
+                        toast.success("Payment completed successfully!");
+                    }
+                } catch (err) {
+                    if (isDev) console.error("Simple payment error:", err);
+                    toast.error("Payment processing failed.");
+                }
+                setProcessingPayment(null);
+                return;
+            }
+
+            const res = await loadRazorpayScript();
+            if (!res) {
+                toast.error("Razorpay SDK failed to load. Are you online?");
+                setProcessingPayment(null);
+                return;
+            }
+
+            const options = {
+                key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+                amount: request.amount * 100,
+                currency: "INR",
+                name: "CaseBridge",
+                description: request.description,
+                order_id: request.razorpay_order_id,
+                handler: async function (response) {
+                    try {
+                        await axios.post(
+                            `http://localhost:8000/api/transactions/verify-payment/`,
+                            {
+                                transaction_id: request.id,
+                                razorpay_order_id: response.razorpay_order_id,
+                                razorpay_payment_id:
+                                    response.razorpay_payment_id,
+                                razorpay_signature: response.razorpay_signature,
+                            },
+                            {
+                                headers: {
+                                    Authorization: `Token ${token}`,
+                                    "Content-Type": "application/json",
+                                },
+                            }
+                        );
+
+                        setPaymentRequests((prev) =>
+                            prev.map((req) =>
+                                req.id === requestId
+                                    ? {
+                                          ...req,
+                                          status: "completed",
+                                          paid_at: new Date().toISOString(),
+                                      }
+                                    : req
+                            )
+                        );
+
+                        fetchPaymentStats();
+
+                        toast.success("Payment completed successfully!");
+                    } catch (err) {
+                        if (isDev)
+                            console.error("Payment verification error:", err);
+                        toast.error("Payment verification failed.");
+                    }
+                },
+                prefill: {
+                    name: request.lawyer.full_name,
+                    email: request.lawyer.email,
+                },
+                theme: {
+                    color: "#10b981",
+                },
+                modal: {
+                    ondismiss: function () {
+                        setProcessingPayment(null);
+                    },
+                },
+            };
+
+            const razorpay = new window.Razorpay(options);
+            razorpay.on("payment.failed", function (response) {
+                if (isDev) console.error("Payment failed:", response.error);
+                toast.error("Payment failed. Please try again.");
+                setProcessingPayment(null);
+            });
+
+            razorpay.open();
+        } catch (error) {
+            console.error("Payment error:", error);
+            toast.error("Something went wrong during payment.");
             setProcessingPayment(null);
         }
     };
@@ -164,14 +288,14 @@ const ClientPayment = ({ token }) => {
     const completedRequests = paymentRequests.filter(
         (req) => req.status === "completed"
     );
-    const totalPaid = completedRequests.reduce(
-        (sum, req) => sum + req.amount,
-        0
-    );
-    const totalPending = pendingRequests.reduce(
-        (sum, req) => sum + req.amount,
-        0
-    );
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="space-y-6">
@@ -190,7 +314,7 @@ const ClientPayment = ({ token }) => {
                         <div>
                             <p className="text-sm text-gray-400">Total Paid</p>
                             <p className="text-xl font-semibold text-green-400">
-                                {formatCurrency(totalPaid)}
+                                {formatCurrency(stats.total_paid || 0)}
                             </p>
                         </div>
                         <div className="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
@@ -206,7 +330,7 @@ const ClientPayment = ({ token }) => {
                                 Pending Amount
                             </p>
                             <p className="text-xl font-semibold text-yellow-400">
-                                {formatCurrency(totalPending)}
+                                {formatCurrency(stats.total_pending || 0)}
                             </p>
                         </div>
                         <div className="w-10 h-10 bg-yellow-600/20 rounded-lg flex items-center justify-center">
@@ -222,7 +346,7 @@ const ClientPayment = ({ token }) => {
                                 Pending Requests
                             </p>
                             <p className="text-xl font-semibold text-yellow-400">
-                                {pendingRequests.length}
+                                {stats.pending_count || 0}
                             </p>
                         </div>
                         <div className="w-10 h-10 bg-yellow-600/20 rounded-lg flex items-center justify-center">
@@ -236,7 +360,7 @@ const ClientPayment = ({ token }) => {
                         <div>
                             <p className="text-sm text-gray-400">Completed</p>
                             <p className="text-xl font-semibold text-green-400">
-                                {completedRequests.length}
+                                {stats.completed_count || 0}
                             </p>
                         </div>
                         <div className="w-10 h-10 bg-green-600/20 rounded-lg flex items-center justify-center">
@@ -354,7 +478,7 @@ const ClientPayment = ({ token }) => {
                                                     {request.lawyer.full_name}
                                                 </h5>
                                                 <p className="text-sm text-gray-400">
-                                                    {request.transaction_id}
+                                                    ID: {request.id}
                                                 </p>
                                             </div>
                                         </div>

@@ -96,6 +96,8 @@ const DiscoverLawyers = ({
 
     const handleSendRequest = async (lawyerId) => {
         try {
+            console.log(lawyerId);
+
             const response = await axios.post(
                 `http://127.0.0.1:8000/api/hire/lawyer/${lawyerId}/`,
                 {},
@@ -105,6 +107,8 @@ const DiscoverLawyers = ({
                     },
                 }
             );
+
+            if (isDev) console.log(response.data);
 
             if (response.status === 201) {
                 toast.success("Request Sent.");
