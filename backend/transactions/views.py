@@ -2,9 +2,11 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import status
+from rest_framework.decorators import api_view, permission_classes
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from django.db.models import Q, Sum
+from django.conf import settings
 from decimal import Decimal
 
 from .models import Transaction, LawyerProfile, GeneralUserProfile
@@ -12,6 +14,7 @@ from .serializers import TransactionSerializer
 
 from dotenv import load_dotenv
 import os
+import razorpay
 
 load_dotenv()
 debug = os.getenv("DEBUG", "False")
@@ -31,32 +34,82 @@ class CreatePaymentRequestView(APIView):
             if not all([client_id, amount]):
                 return Response({'error': 'Client ID and amount are required'}, status=status.HTTP_400_BAD_REQUEST)
 
-            try:
-                amount = Decimal(str(amount))
-                if amount <= 0:
-                    return Response({'error': 'Amount must be greater than 0'}, status=status.HTTP_400_BAD_REQUEST)
-            except (ValueError, TypeError):
-                return Response({'error': 'Invalid amount format'}, status=status.HTTP_400_BAD_REQUEST)
+            amount = Decimal(str(amount))
+            if amount <= 0:
+                return Response({'error': 'Amount must be greater than 0'}, status=status.HTTP_400_BAD_REQUEST)
 
             client_profile = GeneralUserProfile.objects.get(id=client_id)
+
+            razorpay_client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+            order = razorpay_client.order.create({
+                'amount': int(amount * 100),
+                'currency': 'INR',
+                'payment_capture': 1,
+            })
 
             transaction = Transaction.objects.create(
                 user=client_profile,
                 lawyer=lawyer_profile,
                 amount=amount,
                 description=description,
-                status='pending'
+                status='pending',
+                razorpay_order_id=order['id']
             )
 
             serializer = TransactionSerializer(transaction)
-            return Response({'message': 'Payment request created successfully', 'transaction': serializer.data}, status=status.HTTP_201_CREATED)
 
-        except LawyerProfile.DoesNotExist:
-            return Response({'error': 'Lawyer profile not found'}, status=status.HTTP_404_NOT_FOUND)
-        except GeneralUserProfile.DoesNotExist:
-            return Response({'error': 'Client not found'}, status=status.HTTP_404_NOT_FOUND)
+            return Response({
+                'message': 'Payment request created successfully',
+                'transaction': serializer.data,
+                'razorpay': {
+                    'order_id': order['id'],
+                    'key': settings.RAZORPAY_KEY_ID,
+                    'currency': 'INR'
+                }
+            }, status=status.HTTP_201_CREATED)
+
         except Exception as e:
             return Response({'error': f'An error occurred: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def verify_razorpay_payment(request):
+    from razorpay import Client, errors
+
+    transaction_id = request.data.get('transaction_id')
+    razorpay_order_id = request.data.get('razorpay_order_id')
+    razorpay_payment_id = request.data.get('razorpay_payment_id')
+    razorpay_signature = request.data.get('razorpay_signature')
+
+    if not all([transaction_id, razorpay_order_id, razorpay_payment_id, razorpay_signature]):
+        return Response({'error': 'Missing payment data'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        transaction = Transaction.objects.get(id=transaction_id, razorpay_order_id=razorpay_order_id)
+
+        client = razorpay.Client(auth=(settings.RAZORPAY_KEY_ID, settings.RAZORPAY_KEY_SECRET))
+        client.utility.verify_payment_signature({
+            'razorpay_order_id': razorpay_order_id,
+            'razorpay_payment_id': razorpay_payment_id,
+            'razorpay_signature': razorpay_signature
+        })
+
+        transaction.status = 'completed'
+        transaction.razorpay_payment_id = razorpay_payment_id
+        transaction.razorpay_signature = razorpay_signature
+        transaction.paid_at = timezone.now()
+        transaction.save()
+
+        return Response({'message': 'Payment verified successfully'}, status=200)
+
+    except Transaction.DoesNotExist:
+        return Response({'error': 'Transaction not found'}, status=404)
+    except errors.SignatureVerificationError:
+        return Response({'error': 'Invalid payment signature'}, status=400)
+    except Exception as e:
+        return Response({'error': f'An error occurred: {str(e)}'}, status=500)
+
 
 class DeletePaymentRequestView(APIView):
     permission_classes = [IsAuthenticated]
@@ -192,6 +245,7 @@ class ClientPaymentRequestsView(APIView):
                     'description': transaction.description,
                     'timestamp': transaction.timestamp.isoformat(),
                     'paid_at': transaction.paid_at.isoformat() if transaction.paid_at else None,
+                    'razorpay_order_id': transaction.razorpay_order_id,
                     'lawyer': {
                         'id': transaction.lawyer.id,
                         'full_name': transaction.lawyer.full_name,

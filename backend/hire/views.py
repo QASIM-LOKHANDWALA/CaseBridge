@@ -19,6 +19,8 @@ class HireLawyerView(APIView):
 
     def post(self, request, lawyer_id):
         user = request.user
+        
+        print("User is hiring: ", user)
 
         if user.role != 'general':
             return Response({'error': 'Only general users can hire lawyers.'}, status=status.HTTP_403_FORBIDDEN)
