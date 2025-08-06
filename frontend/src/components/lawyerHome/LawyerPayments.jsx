@@ -162,7 +162,6 @@ const LawyerPayments = ({ clients, token }) => {
                         email: data.transaction.user_email,
                     },
                 };
-                
 
                 console.log("New transaction: ", newTransaction);
 
