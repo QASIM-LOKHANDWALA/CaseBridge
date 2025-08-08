@@ -30,7 +30,7 @@ def update_lawyer_rating(lawyer):
 
 
 class LawyerListView(ListAPIView):
-    queryset = User.objects.filter(role='lawyer')
+    queryset = User.objects.filter(role='lawyer').exclude(email='legalbot@casebridge.com')
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
     

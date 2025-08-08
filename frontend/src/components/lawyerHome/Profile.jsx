@@ -22,7 +22,7 @@ import EditProfileModal from "./EditProfileModal";
 const isDev = import.meta.env.VITE_DEV;
 
 const Profile = () => {
-    const { user, token, profile } = useAuth();
+    const { user, token, profile, error } = useAuth();
 
     const [isEditModalOpen, setIsEditModalOpen] = React.useState(false);
 
@@ -92,6 +92,10 @@ const Profile = () => {
     const handleProfileUpdate = async () => {
         try {
             await profile();
+            if (error) {
+                toast.error(error);
+                return;
+            }
             toast.success("Profile refreshed successfully");
         } catch (error) {
             toast.error("Failed to refresh profile data");

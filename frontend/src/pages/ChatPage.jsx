@@ -6,16 +6,10 @@ import {
     MessageCircle,
     Clock,
     Search,
-    Phone,
-    Video,
-    MoreVertical,
     ArrowLeft,
     Bot,
     CheckCheck,
     Check,
-    Paperclip,
-    Smile,
-    X,
     Users,
 } from "lucide-react";
 import useAuth from "../hooks/useAuth";
@@ -45,7 +39,10 @@ const ChatPage = () => {
                     Authorization: `Token ${token}`,
                 },
             })
-            .then((res) => setContacts(res.data));
+            .then((res) => setContacts(res.data))
+            .catch((err) => {
+                toast.error(`Error fetching contacts: ${err.message}`);
+            });
     }, [token]);
 
     useEffect(() => {
@@ -242,7 +239,7 @@ const ChatPage = () => {
                 }
             );
             const botInfo = {
-                user_id: 9,
+                user_id: 3,
                 full_name: "Legal Assistant",
                 email: "legalbot@casebridge.com",
                 isBot: true,
@@ -370,10 +367,8 @@ const ChatPage = () => {
                             <div className="text-gray-500">
                                 {msg.status === "sending" ? (
                                     <Clock className="w-3 h-3" />
-                                ) : msg.status === "sent" ? (
-                                    <Check className="w-3 h-3" />
                                 ) : (
-                                    <CheckCheck className="w-3 h-3 text-blue-400" />
+                                    <Check className="w-3 h-3" />
                                 )}
                             </div>
                         )}
